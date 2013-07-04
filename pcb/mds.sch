@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="dots" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -19149,7 +19149,7 @@ Source: murata.co.jp</description>
 <part name="GND18" library="SparkFun" deviceset="GND" device=""/>
 <part name="U5" library="SparkFun" deviceset="ATMEGA168" device="" value="ATMEGA328"/>
 <part name="GND19" library="SparkFun" deviceset="GND" device=""/>
-<part name="JP1" library="SparkFun" deviceset="ARDUINO_SERIAL_PROGRAM" device="PTH" value="FTDI Basic"/>
+<part name="BL" library="SparkFun" deviceset="ARDUINO_SERIAL_PROGRAM" device="PTH" value="FTDI Basic"/>
 <part name="P+12" library="supply1" deviceset="VCC" device=""/>
 <part name="P+14" library="supply1" deviceset="VCC" device=""/>
 <part name="P+19" library="supply1" deviceset="VCC" device=""/>
@@ -19215,6 +19215,8 @@ Source: murata.co.jp</description>
 <part name="C10" library="rcl" deviceset="C-EU" device="C0805" value="100nf"/>
 <part name="GND26" library="SparkFun" deviceset="GND" device=""/>
 <part name="Q1" library="murata-filter" deviceset="CSTCR" device="" technology="6M00G53Z"/>
+<part name="B1" library="SparkFun" deviceset="TAC_SWITCH" device="SMD" value="Button"/>
+<part name="GND27" library="SparkFun" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -19295,7 +19297,7 @@ Source: murata.co.jp</description>
 <attribute name="VALUE" x="66.04" y="43.18" size="1.778" layer="96"/>
 </instance>
 <instance part="GND19" gate="1" x="58.42" y="45.72"/>
-<instance part="JP1" gate="G$1" x="22.86" y="22.86"/>
+<instance part="BL" gate="G$1" x="22.86" y="22.86"/>
 <instance part="P+12" gate="VCC" x="233.68" y="83.82" smashed="yes">
 <attribute name="VALUE" x="231.14" y="83.82" size="1.778" layer="96" rot="R180"/>
 </instance>
@@ -19430,13 +19432,18 @@ Source: murata.co.jp</description>
 <instance part="GND25" gate="1" x="218.44" y="190.5"/>
 <instance part="PROG" gate="1" x="106.68" y="22.86" rot="R180"/>
 <instance part="RGB" gate="1" x="360.68" y="205.74" rot="R180"/>
-<instance part="ADC0" gate="1" x="314.96" y="180.34" smashed="yes" rot="R180">
-<attribute name="NAME" x="323.723" y="181.0258" size="1.778" layer="95" rot="R180"/>
-<attribute name="VALUE" x="316.103" y="183.642" size="1.778" layer="96" rot="R180"/>
+<instance part="ADC0" gate="1" x="325.12" y="185.42" smashed="yes" rot="R180">
+<attribute name="NAME" x="333.883" y="186.1058" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="326.263" y="188.722" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="C10" gate="G$1" x="129.54" y="101.6"/>
 <instance part="GND26" gate="1" x="129.54" y="91.44"/>
 <instance part="Q1" gate="G$1" x="50.8" y="78.74" rot="R270"/>
+<instance part="B1" gate="S" x="327.66" y="172.72" smashed="yes">
+<attribute name="NAME" x="330.962" y="178.054" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="324.104" y="168.148" size="1.778" layer="96"/>
+</instance>
+<instance part="GND27" gate="1" x="335.28" y="165.1"/>
 </instances>
 <busses>
 </busses>
@@ -19537,12 +19544,12 @@ Source: murata.co.jp</description>
 <segment>
 <wire x1="27.94" y1="27.94" x2="35.56" y2="27.94" width="0.1524" layer="91"/>
 <label x="30.48" y="27.94" size="1.778" layer="95"/>
-<pinref part="JP1" gate="G$1" pin="CTS"/>
+<pinref part="BL" gate="G$1" pin="CTS"/>
 </segment>
 <segment>
 <wire x1="27.94" y1="30.48" x2="35.56" y2="30.48" width="0.1524" layer="91"/>
 <label x="30.48" y="30.48" size="1.778" layer="95"/>
-<pinref part="JP1" gate="G$1" pin="GND"/>
+<pinref part="BL" gate="G$1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="R6" gate="G$1" pin="1"/>
@@ -19624,6 +19631,16 @@ Source: murata.co.jp</description>
 <wire x1="114.3" y1="20.32" x2="116.84" y2="20.32" width="0.1524" layer="91"/>
 <junction x="116.84" y="20.32"/>
 <label x="123.19" y="21.59" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="B1" gate="S" pin="4"/>
+<wire x1="332.74" y1="170.18" x2="335.28" y2="170.18" width="0.1524" layer="91"/>
+<wire x1="335.28" y1="170.18" x2="335.28" y2="172.72" width="0.1524" layer="91"/>
+<pinref part="B1" gate="S" pin="3"/>
+<wire x1="335.28" y1="172.72" x2="332.74" y2="172.72" width="0.1524" layer="91"/>
+<pinref part="GND27" gate="1" pin="GND"/>
+<wire x1="335.28" y1="170.18" x2="335.28" y2="167.64" width="0.1524" layer="91"/>
+<junction x="335.28" y="170.18"/>
 </segment>
 </net>
 <net name="MIC+" class="0">
@@ -19829,7 +19846,7 @@ Source: murata.co.jp</description>
 <segment>
 <wire x1="27.94" y1="25.4" x2="35.56" y2="25.4" width="0.1524" layer="91"/>
 <label x="30.48" y="25.4" size="1.778" layer="95"/>
-<pinref part="JP1" gate="G$1" pin="VCC"/>
+<pinref part="BL" gate="G$1" pin="VCC"/>
 </segment>
 <segment>
 <pinref part="U2" gate="G$1" pin="XCLK/FMC3"/>
@@ -20000,7 +20017,7 @@ Source: murata.co.jp</description>
 <segment>
 <wire x1="27.94" y1="20.32" x2="35.56" y2="20.32" width="0.1524" layer="91"/>
 <label x="30.48" y="20.32" size="1.778" layer="95"/>
-<pinref part="JP1" gate="G$1" pin="RXI"/>
+<pinref part="BL" gate="G$1" pin="RXI"/>
 </segment>
 </net>
 <net name="N$9" class="0">
@@ -20027,7 +20044,7 @@ Source: murata.co.jp</description>
 <segment>
 <wire x1="27.94" y1="17.78" x2="35.56" y2="17.78" width="0.1524" layer="91"/>
 <label x="30.48" y="17.78" size="1.778" layer="95"/>
-<pinref part="JP1" gate="G$1" pin="DTR"/>
+<pinref part="BL" gate="G$1" pin="DTR"/>
 </segment>
 <segment>
 <wire x1="27.94" y1="124.46" x2="20.32" y2="124.46" width="0.1524" layer="91"/>
@@ -20039,7 +20056,7 @@ Source: murata.co.jp</description>
 <segment>
 <wire x1="27.94" y1="22.86" x2="35.56" y2="22.86" width="0.1524" layer="91"/>
 <label x="30.48" y="22.86" size="1.778" layer="95"/>
-<pinref part="JP1" gate="G$1" pin="TXO"/>
+<pinref part="BL" gate="G$1" pin="TXO"/>
 </segment>
 <segment>
 <wire x1="109.22" y1="83.82" x2="111.76" y2="83.82" width="0.1524" layer="91"/>
@@ -20348,9 +20365,20 @@ Source: murata.co.jp</description>
 </segment>
 <segment>
 <pinref part="ADC0" gate="1" pin="P"/>
-<wire x1="312.42" y1="180.34" x2="309.88" y2="180.34" width="0.1524" layer="91"/>
-<junction x="309.88" y="180.34"/>
-<label x="302.26" y="180.34" size="1.778" layer="95"/>
+<wire x1="322.58" y1="185.42" x2="320.04" y2="185.42" width="0.1524" layer="91"/>
+<junction x="320.04" y="185.42"/>
+<label x="312.42" y="185.42" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="B1" gate="S" pin="2"/>
+<wire x1="322.58" y1="170.18" x2="320.04" y2="170.18" width="0.1524" layer="91"/>
+<wire x1="320.04" y1="170.18" x2="320.04" y2="172.72" width="0.1524" layer="91"/>
+<pinref part="B1" gate="S" pin="1"/>
+<wire x1="320.04" y1="172.72" x2="322.58" y2="172.72" width="0.1524" layer="91"/>
+<wire x1="320.04" y1="170.18" x2="317.5" y2="170.18" width="0.1524" layer="91"/>
+<junction x="320.04" y="170.18"/>
+<junction x="317.5" y="170.18"/>
+<label x="307.34" y="170.18" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
