@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="dots" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -4693,11 +4693,6 @@ Button commonly used for reset or general input. Spark Fun Electronics SKU : COM
 <pad name="SDA" x="3.81" y="7.62" drill="0.8" diameter="1.9304"/>
 <pad name="DRY" x="3.81" y="10.16" drill="0.8" diameter="1.9304"/>
 <pad name="GND" x="3.81" y="12.7" drill="0.8" diameter="1.9304"/>
-<text x="5.3975" y="12.3825" size="0.8128" layer="21">GND</text>
-<text x="5.3975" y="9.8425" size="0.8128" layer="21">DRY</text>
-<text x="5.3975" y="7.3025" size="0.8128" layer="21">SDA</text>
-<text x="5.3975" y="4.7625" size="0.8128" layer="21">SCL</text>
-<text x="5.3975" y="2.2225" size="0.8128" layer="21">VCC</text>
 <text x="0" y="-3.81" size="1.27" layer="21">&gt;VALUE</text>
 <text x="0" y="-1.905" size="1.27" layer="21">&gt;NAME</text>
 </package>
@@ -18890,200 +18885,6 @@ Source: http://www.maxim-ic.com .. MAX1551-MAX1555.pdf</description>
 </deviceset>
 </devicesets>
 </library>
-<library name="microphon">
-<description>&lt;b&gt;Microphon&lt;/b&gt; from&lt;p&gt;
-JLI Electronics - www.jlielectronics.com&lt;br&gt;
-Panansonic - http://industrial.panasonic.com&lt;br&gt;
-&lt;p&gt;
-&lt;author&gt;librarian@cadsoft.de&lt;/author&gt;</description>
-<packages>
-<package name="F6035AP">
-<description>&lt;b&gt;Omnibidirectional Electret Condenser Microphon&lt;/b&gt;&lt;p&gt;
-Source: F6035AP.pdf</description>
-<circle x="0" y="0" radius="2.8754" width="0.2032" layer="21"/>
-<circle x="1.9" y="0" radius="0.4279" width="0" layer="21"/>
-<circle x="0" y="0" radius="2.625" width="1" layer="41"/>
-<pad name="2" x="0" y="-0.95" drill="0.7" diameter="1.2"/>
-<pad name="1" x="0" y="0.95" drill="0.7" diameter="1.2"/>
-<text x="-2.4" y="3.2" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.4" y="-4.8" size="1.27" layer="27">&gt;VALUE</text>
-</package>
-<package name="F6050AP">
-<description>&lt;b&gt;Omnibidirectional Electret Condenser Microphon&lt;/b&gt;&lt;p&gt;
-Source: F6050AP.pdf</description>
-<circle x="0" y="0" radius="2.8754" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.625" width="1" layer="41"/>
-<pad name="2" x="0" y="-1.27" drill="0.7" diameter="1.2"/>
-<pad name="1" x="0" y="1.27" drill="0.7" diameter="1.2"/>
-<text x="-2.4" y="3.2" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.4" y="-4.8" size="1.27" layer="27">&gt;VALUE</text>
-<rectangle x1="1.5499" y1="-2.0251" x2="1.9499" y2="-1.4751" layer="21" rot="R45"/>
-<rectangle x1="-1.95" y1="-2.025" x2="-1.55" y2="-1.475" layer="21" rot="R315"/>
-</package>
-<package name="WM-61A">
-<description>&lt;b&gt;Omnidirectional Back Electret Condenser Microphone Cartridge&lt;/b&gt;&lt;p&gt;
-Source: www.panasonic.com/industrial/components/pdf/em06_wm61_a_b_dne.pdf</description>
-<wire x1="-2.75" y1="0.5" x2="-2.25" y2="0.5" width="0.2032" layer="21"/>
-<wire x1="-2.25" y1="0.5" x2="-2.25" y2="-0.5" width="0.2032" layer="21"/>
-<wire x1="-2.25" y1="-0.5" x2="-2.75" y2="-0.5" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.9" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.85" width="0.6" layer="41"/>
-<circle x="1.9" y="0" radius="0.3758" width="0" layer="21"/>
-<smd name="1" x="0" y="0.95" dx="2.5" dy="1.3" layer="1" roundness="100"/>
-<smd name="2" x="0" y="-0.95" dx="2.5" dy="1.3" layer="1" roundness="100"/>
-<text x="-2.794" y="3.302" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.794" y="-4.572" size="1.27" layer="27">&gt;VALUE</text>
-</package>
-<package name="WM-61B">
-<description>&lt;b&gt;Omnidirectional Back Electret Condenser Microphone Cartridge&lt;/b&gt;&lt;p&gt;
-Source: www.panasonic.com/industrial/components/pdf/em06_wm61_a_b_dne.pdf</description>
-<circle x="0" y="0" radius="2.9" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.85" width="0.6" layer="41"/>
-<circle x="2" y="0" radius="0.3783" width="0" layer="21"/>
-<pad name="1" x="0" y="0.95" drill="0.6" diameter="1"/>
-<pad name="2" x="0" y="-0.95" drill="0.6" diameter="1"/>
-<text x="-2.794" y="3.302" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.794" y="-4.572" size="1.27" layer="27">&gt;VALUE</text>
-<rectangle x1="-2.8" y1="-0.225" x2="-2.325" y2="0.225" layer="21"/>
-</package>
-<package name="WM-62PC/62PK">
-<description>&lt;b&gt;Omnidirectional Back Electret Condenser Microphone Cartridge&lt;/b&gt;&lt;p&gt;
-Source: http://industrial.panasonic.com/www-data/pdf/ABA5000/ABA5000CE10.pdf</description>
-<circle x="0" y="0" radius="2.9" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.85" width="0.6" layer="41"/>
-<pad name="1" x="-1" y="0.95" drill="0.6" diameter="1"/>
-<pad name="2" x="-1" y="-0.95" drill="0.6" diameter="1"/>
-<text x="-2.794" y="3.302" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.794" y="-4.572" size="1.27" layer="27">&gt;VALUE</text>
-</package>
-<package name="WM-63PR">
-<description>&lt;b&gt;Omnidirectional Back Electret Condenser Microphone Cartridge&lt;/b&gt;&lt;p&gt;
-Source: http://industrial.panasonic.com/www-data/pdf/ABA5000/ABA5000CE3.pdf</description>
-<circle x="0" y="0" radius="2.9" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.85" width="0.6" layer="41"/>
-<pad name="1" x="-1" y="0.95" drill="0.6" diameter="1"/>
-<pad name="2" x="-1" y="-0.95" drill="0.6" diameter="1"/>
-<text x="-2.794" y="3.302" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.794" y="-4.572" size="1.27" layer="27">&gt;VALUE</text>
-</package>
-<package name="WM-64PC/64PK">
-<description>&lt;b&gt;Omnidirectional Back Electret Condenser Microphone Cartridge&lt;/b&gt;&lt;p&gt;
-Source: http://industrial.panasonic.com/www-data/pdf/ABA5000/ABA5000CE10.pdf</description>
-<circle x="0" y="0" radius="2.9" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.85" width="0.6" layer="41"/>
-<pad name="1" x="-1" y="0.95" drill="0.6" diameter="1"/>
-<pad name="2" x="-1" y="-0.95" drill="0.6" diameter="1"/>
-<text x="-2.794" y="3.302" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.794" y="-4.572" size="1.27" layer="27">&gt;VALUE</text>
-</package>
-<package name="WM-64PN">
-<description>&lt;b&gt;Omnidirectional Back Electret Condenser Microphone Cartridge&lt;/b&gt;&lt;p&gt;
-Source: http://industrial.panasonic.com/www-data/pdf/ABA5000/ABA5000CE10.pdf</description>
-<circle x="0" y="0" radius="2.9" width="0.2032" layer="21"/>
-<circle x="0" y="0" radius="2.85" width="0.6" layer="41"/>
-<pad name="1" x="-1" y="0.95" drill="0.6" diameter="1"/>
-<pad name="2" x="-1" y="-0.95" drill="0.6" diameter="1"/>
-<text x="-2.794" y="3.302" size="1.27" layer="25">&gt;NAME</text>
-<text x="-2.794" y="-4.572" size="1.27" layer="27">&gt;VALUE</text>
-</package>
-</packages>
-<symbols>
-<symbol name="CONDENSER-MICROPHON">
-<wire x1="1.27" y1="-1.27" x2="2.032" y2="-1.27" width="0.1524" layer="94"/>
-<wire x1="2.032" y1="-0.254" x2="2.032" y2="-1.27" width="0.1524" layer="94"/>
-<wire x1="2.032" y1="-1.27" x2="2.032" y2="-2.286" width="0.1524" layer="94"/>
-<wire x1="2.54" y1="-0.254" x2="2.54" y2="-1.27" width="0.1524" layer="94"/>
-<wire x1="2.54" y1="-1.27" x2="2.54" y2="-2.286" width="0.1524" layer="94"/>
-<wire x1="2.54" y1="-1.27" x2="3.302" y2="-1.27" width="0.1524" layer="94"/>
-<circle x="2.286" y="-1.27" radius="2.54" width="0.254" layer="94"/>
-<rectangle x1="4.826" y1="-3.81" x2="5.334" y2="1.27" layer="94"/>
-<pin name="1" x="-5.08" y="0" visible="pad" length="middle" direction="pas"/>
-<pin name="2" x="-5.08" y="-2.54" visible="pad" length="middle" direction="pas"/>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="ELECTRET_MICROPHON-" prefix="M">
-<description>&lt;b&gt;Electret Condenser Microphone&lt;/b&gt;&lt;p&gt;</description>
-<gates>
-<gate name="G$1" symbol="CONDENSER-MICROPHON" x="0" y="0"/>
-</gates>
-<devices>
-<device name="F6035AP" package="F6035AP">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="F6050AP" package="F6050AP">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="WM-61A" package="WM-61A">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="WM-61B" package="WM-61B">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="WM-62PC/62PK" package="WM-62PC/62PK">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="WM-63PR" package="WM-63PR">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="WM-64PC/64PK" package="WM-64PC/64PK">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="WM.64PN" package="WM-64PN">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 <library name="murata-filter">
 <description>&lt;b&gt;Murata Filters&lt;/b&gt;&lt;p&gt;
 Distributor RS Components&lt;p&gt;
@@ -19280,7 +19081,6 @@ Source: murata.co.jp</description>
 <part name="C5" library="rcl" deviceset="CPOL-EU" device="CT3528" value="10uf"/>
 <part name="C6" library="rcl" deviceset="CPOL-EU" device="CT3528" value="10uf"/>
 <part name="C7" library="rcl" deviceset="CPOL-EU" device="CT3528" value="10uf"/>
-<part name="M1" library="microphon" deviceset="ELECTRET_MICROPHON-" device="F6035AP"/>
 <part name="C9" library="rcl" deviceset="C-EU" device="C0805" value="100nf"/>
 <part name="P+21" library="supply1" deviceset="VCC" device=""/>
 <part name="GND25" library="SparkFun" deviceset="GND" device=""/>
@@ -19295,6 +19095,8 @@ Source: murata.co.jp</description>
 <part name="I2C" library="con-lstb" deviceset="MA04-1" device=""/>
 <part name="P+22" library="supply1" deviceset="VCC" device=""/>
 <part name="GND28" library="SparkFun" deviceset="GND" device=""/>
+<part name="MIC+" library="wirepad" deviceset="2,15/1,0" device=""/>
+<part name="MIC-" library="wirepad" deviceset="2,15/1,0" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -19310,6 +19112,7 @@ Source: murata.co.jp</description>
 <wire x1="147.32" y1="154.94" x2="147.32" y2="5.08" width="0.1524" layer="98" style="shortdash"/>
 <text x="10.16" y="139.7" size="6.4516" layer="98">Core</text>
 <text x="248.92" y="243.84" size="6.4516" layer="98">Interface</text>
+<text x="347.98" y="20.32" size="2.54" layer="94">Charles Rincheval</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0" smashed="yes">
@@ -19502,7 +19305,6 @@ Source: murata.co.jp</description>
 <instance part="C5" gate="G$1" x="241.3" y="134.62"/>
 <instance part="C6" gate="G$1" x="269.24" y="134.62"/>
 <instance part="C7" gate="G$1" x="292.1" y="58.42"/>
-<instance part="M1" gate="G$1" x="355.6" y="73.66"/>
 <instance part="C9" gate="G$1" x="218.44" y="203.2" rot="R180"/>
 <instance part="P+21" gate="VCC" x="218.44" y="215.9" smashed="yes">
 <attribute name="VALUE" x="220.98" y="218.44" size="1.778" layer="96" rot="R180"/>
@@ -19527,6 +19329,14 @@ Source: murata.co.jp</description>
 <attribute name="VALUE" x="269.24" y="185.42" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="GND28" gate="1" x="266.7" y="165.1"/>
+<instance part="MIC+" gate="1" x="353.06" y="73.66" smashed="yes" rot="R180">
+<attribute name="NAME" x="361.823" y="74.3458" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="354.203" y="76.962" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="MIC-" gate="1" x="353.06" y="71.12" smashed="yes" rot="R180">
+<attribute name="NAME" x="361.823" y="71.8058" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="354.203" y="74.422" size="1.778" layer="96" rot="R180"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -19833,7 +19643,7 @@ Source: murata.co.jp</description>
 <junction x="345.44" y="73.66"/>
 <pinref part="R3" gate="G$1" pin="1"/>
 <pinref part="C19" gate="G$1" pin="2"/>
-<pinref part="M1" gate="G$1" pin="1"/>
+<pinref part="MIC+" gate="1" pin="P"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -19845,7 +19655,7 @@ Source: murata.co.jp</description>
 <junction x="345.44" y="71.12"/>
 <pinref part="R4" gate="G$1" pin="2"/>
 <pinref part="C20" gate="G$1" pin="1"/>
-<pinref part="M1" gate="G$1" pin="2"/>
+<pinref part="MIC-" gate="1" pin="P"/>
 </segment>
 </net>
 <net name="N$6" class="0">
