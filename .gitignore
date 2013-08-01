@@ -1,4 +1,4 @@
-src/Ino/.build
+src/.build
 *.b#*
 *.s#*
 *.l#*
