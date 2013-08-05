@@ -211,40 +211,23 @@ module side(type = 0, text = "") {
     }
 }
 
-module sides() {
+module sides(which = -1) {
     offset = 30;
 
-    translate([0, 0, offset]) {
-        side(0, "1");
-    }
-
-    translate([0, 0, -offset]) {
-        rotate([180, 0, 0]) {
-            side(0, "6");
-        }
-    }
-
-    translate([offset, 0, 0]) {
-        rotate([0, 90, 0]) {
-            side(1, "2");
-        }
-    }
-
-    translate([-offset, 0, 0]) {
-        rotate([0, -90, 0]) {
-            side(1, "5");
-        }
-    }
-
-    translate([0, -offset, 0]) {
-        rotate([90, 0, 0]) {
-            side(2, "4");
-        }
-    }
-
-    translate([0, offset, 0]) {
-        rotate([-90, 0, 0]) {
-            side(2, "3");
+    for (data = [
+        [[0, 0, offset], [0, 0, 0], 0, "1"],
+        [[0, 0, -offset], [180, 0, 0], 0, "6"],
+        [[offset, 0, 0], [0, 90, 0], 1, "2"],
+        [[-offset, 0, 0], [0, -90, 0], 1, "5"],
+        [[0, -offset, 0], [90, 0, 0], 2, "4"],
+        [[0, offset, 0], [-90, 0, 0], 2, "3"]
+    ]) {
+        if (which == -1 || which == data[3]) {
+            translate(data[0]) {
+                rotate(data[1]) {
+                    side(data[2], data[3]);
+                }
+            }
         }
     }
 }
