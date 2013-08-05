@@ -1,4 +1,6 @@
 
+use <lib/Spiff.scad>;
+
 $fn = 20;
 
 SIZE = 76;
@@ -113,10 +115,35 @@ module electronic_support() {
     }
 }
 
-module main() {
+module holes() {
     hole_diameter = 2;
     hole_offset = RIDGE_WIDTH - hole_diameter * 1.2;
 
+    for (rot = [
+        [0, 0, 0],
+        [0, 90, 0],
+        [90, 0, 0]
+    ]) {
+        rotate(rot) {
+            for(pos = [ 
+                [SIZE / 2 - hole_offset, SIZE / 2 - hole_offset, 0],
+                [-SIZE / 2 + hole_offset, SIZE / 2 - hole_offset, 0],
+                [SIZE / 2 - hole_offset, -SIZE / 2 + hole_offset, 0],
+                [-SIZE / 2 + hole_offset, -SIZE / 2 + hole_offset, 0],
+            ]) {
+                translate(pos) {
+                    cylinder(r = hole_diameter / 2, h = 150, center = true);
+
+                    for (i = [0 : $children - 1]) {
+                        child(i);
+                    }
+                }
+            }
+        }
+    }
+}
+
+module main() {
     nut_diameter = 5;
     nut_height = 1.9;
 
@@ -127,31 +154,14 @@ module main() {
         cube(size = [SIZE - RIDGE_WIDTH * 2, SIZE - RIDGE_WIDTH * 2, SIZE * 2], center = true);
         cube(size = [SIZE - THICKNESS * 2, SIZE - THICKNESS * 2, SIZE - THICKNESS * 2], center = true);
 
-        for (rot = [
-            [0, 0, 0],
-            [0, 90, 0],
-            [90, 0, 0]
-        ]) {
-            rotate(rot) {
-                for(pos = [ 
-                    [SIZE / 2 - hole_offset, SIZE / 2 - hole_offset, 0],
-                    [-SIZE / 2 + hole_offset, SIZE / 2 - hole_offset, 0],
-                    [SIZE / 2 - hole_offset, -SIZE / 2 + hole_offset, 0],
-                    [-SIZE / 2 + hole_offset, -SIZE / 2 + hole_offset, 0],
-                ]) {
-                    translate(pos) {
-                        cylinder(r = hole_diameter / 2, h = 150, center = true);
-
-                        translate([0, 0, SIZE / 2 - THICKNESS - nut_height * .3]) {
-                            cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
-                        }
-
-                        translate([0, 0, - SIZE / 2 + THICKNESS - nut_height + 0.5]) {
-                            cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
-                        }
-                    }
-                }
+        holes() {
+            translate([0, 0, SIZE / 2 - THICKNESS - nut_height * .3]) {
+                cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
             }
+
+            translate([0, 0, - SIZE / 2 + THICKNESS - nut_height + 0.5]) {
+                cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
+            }   
         }
     }
 }
@@ -168,8 +178,82 @@ module all() {
     }
 }
 
-if (0) {
+module side(type = 0, text = "") {
+    nut_head_diameter = 5.5;
+    nut_head_height = 1.2;
+    thickness = 2;
+    text_deep = 1;
+    difference() {
+        translate([0, 0, SIZE / 2 + thickness / 2]) {
+            // Biggest type
+            if (type == 0) {
+                cube(size = [SIZE + thickness * 2, SIZE + thickness * 2, 2], center = true);
+            // Medium type
+            } else if (type == 1) {
+                cube(size = [SIZE, SIZE + thickness * 2, 2], center = true);
+            // Smallest type
+            } else if (type == 2) {
+                cube(size = [SIZE, SIZE, 2], center = true);
+            }
+        }
+
+        translate([0, 0, SIZE / 2 - nut_head_height + thickness]) {
+            holes() {
+                cylinder(r = nut_head_diameter / 2, h = 2);
+            }
+        }
+
+        translate([-10, -15, SIZE / 2 + thickness + 1 - text_deep]) {
+            scale([3.5, 3.5, 1]) {
+                write(text);
+            }
+        }
+    }
+}
+
+module sides() {
+    offset = 30;
+
+    translate([0, 0, offset]) {
+        side(0, "1");
+    }
+
+    translate([0, 0, -offset]) {
+        rotate([180, 0, 0]) {
+            side(0, "6");
+        }
+    }
+
+    translate([offset, 0, 0]) {
+        rotate([0, 90, 0]) {
+            side(1, "2");
+        }
+    }
+
+    translate([-offset, 0, 0]) {
+        rotate([0, -90, 0]) {
+            side(1, "5");
+        }
+    }
+
+    translate([0, -offset, 0]) {
+        rotate([90, 0, 0]) {
+            side(2, "4");
+        }
+    }
+
+    translate([0, offset, 0]) {
+        rotate([-90, 0, 0]) {
+            side(2, "3");
+        }
+    }
+}
+
+if (1) {
     all();
+
+    sides();
+
 } else {
     difference() {
         rotate([45, 0, 0]) {
