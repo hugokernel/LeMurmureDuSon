@@ -1,7 +1,7 @@
 
 #include "Wire.h"
 #include "ADXL345.h"
-//#include "HL1606strip.h"
+#include "HL1606strip.h"
 //#include <SerialCommand.h>
 
 #define VIBRATOR A1     // PC1
@@ -29,7 +29,7 @@ ADXL345 accel;
 #define STRIP_D 11
 #define STRIP_C 13
 #define STRIP_L 10
-//HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, 6);
+HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, 6);
 
 //#define P   Serial.print
 //#define PLN Serial.println
@@ -69,6 +69,12 @@ bool stop() {
     msgUnselect();
 }
 
+void vibrate(int time) {
+    UP(VIBRATOR);
+    delay(time);
+    DOWN(VIBRATOR);
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -96,25 +102,29 @@ void setup()
 
     accel.powerOn();
 
-/*
-    accel.setRangeSetting(2);
+    //accel.setRangeSetting(2);
 
-    accel.setTapThreshold(1);
-  
+    accel.setTapThreshold(0x40);
+    accel.setTapDuration(0x30);
+    accel.setDoubleTapLatency(0x40);
+    accel.setDoubleTapWindow(0xFF);
+    accel.setTapDetectionOnX(true);
+    accel.setTapDetectionOnY(true);
+    accel.setTapDetectionOnZ(true);
+    accel.setInterrupt(1, true);
+    accel.setInterruptMapping(1, true);
+ /*
     accel.setAxisOffset(2, 3, 4);
-    accel.setActivityThreshold(1);
-    accel.setTapDuration(5);
+    accel.setActivityThreshold(48);
+    accel.setTapDuration(0x30);
 
     accel.setActivityX(true);
     accel.setActivityY(true);
     accel.setActivityZ(true);
-
-    accel.setTapDetectionOnX(true);
-    accel.setTapDetectionOnY(true);
-    accel.setTapDetectionOnZ(true);
 */
 
-/*
+ /*
+
     colorWipe(RED, 40);
     record(M8);
     delay(3000);
@@ -124,7 +134,7 @@ void setup()
     //sCmd.setDefaultHandler(unrecognized);
     //sCmd.addCommand("accel", cmd_accel);
 
-    //colorWipe(YELLOW, 40);
+    colorWipe(YELLOW, 40);
     play(M8);
     delay(3000);
     stop();
@@ -141,7 +151,6 @@ ISR(TIMER1_OVF_vect)
 }
 */
 
-/*
 void rainbowParty(uint8_t wait) {
   uint8_t i, j;
 
@@ -212,9 +221,27 @@ void colorWipe(uint8_t color, uint8_t wait) {
       delay(wait);
   }
 }
-*/
+
+int findPositionLargest(double data[], int arraySize) 
+{
+    int pos = 0;
+    double largest = data[0];
+    for (int i=0; i<arraySize; i++)
+    {
+        if (largest < data[i])
+        {
+            largest = data[i];
+            pos = i;
+        }
+    }
+    return pos;
+}
 
     int x, y, z, i;
+  double xyz[3], gains[3], gains_orig[3];
+int pos = 0;
+char data[3];
+
 void loop() {
 /*
    colorWipe(RED, 40);
@@ -267,7 +294,8 @@ void loop() {
     delay(5000);    
 */
 
-/*
+    accel.getInterruptSource();
+
     if (accel.isActivitySourceOnX()) {
         Serial.print("isActivitySourceOnX(): ");
         Serial.println(accel.isActivitySourceOnX(), DEC);
@@ -297,14 +325,16 @@ void loop() {
         Serial.print("accel.isTapSourceOnZ(): ");
         Serial.println(accel.isTapSourceOnZ(), DEC);
     }
-*/
+
     //delay(500);
 
 //    memset(&x, 0x00, sizeof(x));
 //    memset(&y, 0x00, sizeof(y));
 //    memset(&z, 0x00, sizeof(z));
 
+/*
     accel.readAccel(&x, &y, &z);
+
     Serial.print("XYZ COUNTS: ");
     Serial.print(x, DEC);
     Serial.print(" ");
@@ -312,16 +342,54 @@ void loop() {
     Serial.print(" ");
     Serial.print(z, DEC);
     Serial.print(".");
-    Serial.println("");
+*/
 
-    delay(1000);
+    accel.get_Gxyz(xyz);
+
+    Serial.print("XYZ Gs: ");
+    for(i = 0; i<3; i++){
+        Serial.print(xyz[i], DEC);
+        Serial.print(" ");
+    }
+    Serial.println("");
+    //Serial.println(findPositionLargest(xyz, 3), DEC);
+
+    pos = findPositionLargest(xyz, 3);
+    if (xyz[pos] > 1.6) {
+        strip.wakeup();
+        colorWipe(RED, 40);
+        vibrate(200);
+
+        delay(3000);
+        strip.blankPush();
+        strip.sleep(); 
+    } else if (xyz[pos] > 0.7) {
+        if (xyz[pos] > 0) {
+
+        } else {
+
+        }
+    }
+
 
 /*
-    UP(VIBRATOR);
-    delay(1000);
-    DOWN(VIBRATOR);
-    delay(1000);
+    if (x > y && x > z) {
+        Serial.println("X");
+    } else if (y < x && y < z) {
+        Serial.println("-Y");
+    } else if (z > x && z > y) {
+        Serial.println("Z");
+    } else if (x < y && x < z) {
+        Serial.println("-X");
+    } else if (y > x && y > z) {
+        Serial.println("Y");
+    } else if (z < x && z < y) {
+        Serial.println("-Z");
+    }
 */
+
+    //delay(1000);
+
     //Serial.write('.');
 }
 
