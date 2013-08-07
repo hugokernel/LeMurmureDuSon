@@ -8,6 +8,8 @@ RIDGE_WIDTH = 10;
 
 THICKNESS = 3;
 
+HOLE_DIAMETER = 2 + .5;
+
 ELEC_WIDTH = 40;
 ELEC_LENGTH = 42.3;
 ELEC_THICKNESS = 0.8;
@@ -40,7 +42,7 @@ module electronic() {
     difference() {
         cube(size = [ELEC_WIDTH, ELEC_LENGTH, ELEC_THICKNESS], center = true);
 
-        for(pos = [ 
+        for(pos = [
             [ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2, -5],
             [-ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2, -5],
             [ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2, -5],
@@ -96,7 +98,7 @@ module electronic_support() {
         gy27();
     }
 
-    for(pos = [ 
+    for(pos = [
         [ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2 + offset, 0],
         [-ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2 + offset, 0],
         [ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2 + offset, 0],
@@ -106,7 +108,7 @@ module electronic_support() {
             difference() {
                 //cylinder(r = 3.7, h = thickness, center = true);
                 cylinder(r = 6.7, h = thickness, center = true, $fn = 6);
-                
+
                 translate([0, 0, -5]) {
                     cylinder(r = ELEC_HOLE_DIAMETER / 2, h = 10);
                 }
@@ -116,8 +118,7 @@ module electronic_support() {
 }
 
 module holes() {
-    hole_diameter = 2;
-    hole_offset = RIDGE_WIDTH - hole_diameter * 1.2;
+    hole_offset = RIDGE_WIDTH - 2.4;
 
     for (rot = [
         [0, 0, 0],
@@ -125,14 +126,14 @@ module holes() {
         [90, 0, 0]
     ]) {
         rotate(rot) {
-            for(pos = [ 
+            for(pos = [
                 [SIZE / 2 - hole_offset, SIZE / 2 - hole_offset, 0],
                 [-SIZE / 2 + hole_offset, SIZE / 2 - hole_offset, 0],
                 [SIZE / 2 - hole_offset, -SIZE / 2 + hole_offset, 0],
                 [-SIZE / 2 + hole_offset, -SIZE / 2 + hole_offset, 0],
             ]) {
                 translate(pos) {
-                    cylinder(r = hole_diameter / 2, h = 150, center = true);
+                    cylinder(r = HOLE_DIAMETER / 2, h = 150, center = true);
 
                     for (i = [0 : $children - 1]) {
                         child(i);
@@ -161,7 +162,7 @@ module main() {
 
             translate([0, 0, - SIZE / 2 + THICKNESS - nut_height + 0.5]) {
                 cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
-            }   
+            }
         }
     }
 }
@@ -178,9 +179,9 @@ module all() {
     }
 }
 
-module side(type = 0, text = "") {
-    nut_head_diameter = 5.5;
-    nut_head_height = 1.2;
+module side(type = 0, text = "", text_rot = [0, 0, 0], text_pos = [0, 0, 0]) {
+    nut_head_diameter = 4.6; // Before : 4: serré, 5: too large
+    nut_head_height = 1.3;
     thickness = 2;
     text_deep = 1;
     difference() {
@@ -203,29 +204,51 @@ module side(type = 0, text = "") {
             }
         }
 
-        translate([-10, -15, SIZE / 2 + thickness + 1 - text_deep]) {
+        translate([-10, -15, SIZE / 2 + thickness - text_deep]) {
             scale([3.5, 3.5, 1]) {
-                write(text);
+                rotate(text_rot) {
+                    translate(text_pos) {
+                        linear_extrude(height = 20) {
+                            write(text);
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-module sides(which = -1) {
-    offset = 30;
+PARABOLE_HEIGHT = 10;
 
+module parabole() {
+    echo(SIZE/2);
+    rotate([0, 0, 45]) {
+        difference() {
+            cylinder(r1 = 27, r2 = SIZE / 2, h = PARABOLE_HEIGHT, $fn = 4, center = true);
+            cylinder(r1 = 3, r2 = SIZE / 2 - 2, h = PARABOLE_HEIGHT + 0.01, $fn = 4, center = true);
+        }
+    }
+}
+
+module sides(which = -1, offset = 30) {
     for (data = [
-        [[0, 0, offset], [0, 0, 0], 0, "1"],
-        [[0, 0, -offset], [180, 0, 0], 0, "6"],
-        [[offset, 0, 0], [0, 90, 0], 1, "2"],
-        [[-offset, 0, 0], [0, -90, 0], 1, "5"],
-        [[0, -offset, 0], [90, 0, 0], 2, "4"],
-        [[0, offset, 0], [-90, 0, 0], 2, "3"]
+        [[0, 0, offset],    [0, 0, 0],      0, "1", [0, 0, 90], [1.5, -7.5, 0]],
+        [[0, 0, -offset],   [180, 0, 0],    0, "6"],
+        [[offset, 0, 0],    [0, 90, 0],     1, "2", [0, 0, 90], [1.5, -7.5, 0]],
+        [[-offset, 0, 0],   [0, -90, 0],    1, "5", [0, 0, -90], [-7, -2, 0]],
+        [[0, -offset, 0],   [90, 0, 0],     2, "4"],
+        [[0, offset, 0],    [-90, 0, 0],    2, "3", [0, 0, 180], [-6, -9, 0]]
     ]) {
         if (which == -1 || which == data[3]) {
             translate(data[0]) {
                 rotate(data[1]) {
-                    side(data[2], data[3]);
+                    %side(data[2], data[3], data[4], data[5]);
+
+                    if (which == "1") {
+                        translate([0, 0, SIZE / 2 - PARABOLE_HEIGHT / 2]) {
+                            parabole();
+                        }
+                    }
                 }
             }
         }
@@ -235,7 +258,8 @@ module sides(which = -1) {
 if (1) {
     all();
 
-    sides();
+    //sides("4");
+    sides(which = "1", offset = 0);
 
 } else {
     difference() {
