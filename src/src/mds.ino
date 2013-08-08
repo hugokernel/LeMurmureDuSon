@@ -35,11 +35,15 @@ HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, 6);
 //#define PLN Serial.println
 //SerialCommand sCmd;
 
-unsigned char Messages[] = {
+uint8_t Messages[] = {
     M1, M2, M3, M4, M5, M6, M7
 };
 
-inline void msgSelect(unsigned char index) {
+uint8_t Leds[] = {
+    0, 1, 2, 3, 4, 5, 6, 7
+};
+
+inline void msgSelect(uint8_t index) {
     DOWN(Messages[index]);
 }
 
@@ -53,13 +57,13 @@ inline bool isPlaying() {
     return !READ(LED);
 }
 
-bool record(unsigned char index) {
+bool record(uint8_t index) {
     DOWN(REC_PLAY);
     // Todo: Sleep for 30ns
     DOWN(Messages[index]);
 }
 
-bool play(unsigned char index) {
+bool play(uint8_t index) {
     UP(REC_PLAY);
     // Todo: Sleep for 30ns
     DOWN(Messages[index]);
@@ -69,10 +73,24 @@ bool stop() {
     msgUnselect();
 }
 
-void vibrate(int time) {
+inline void vibrate(int time) {
     UP(VIBRATOR);
     delay(time);
     DOWN(VIBRATOR);
+}
+
+inline void ledOff() {
+    uint8_t c = 0;
+    for (c = 0; c < strip.numLEDs(); c++) {
+        strip.setLEDcolor(c, BLACK);
+    }
+
+    strip.writeStrip();
+}
+
+inline void ledOn(uint8_t index, uint8_t color) {
+    strip.setLEDcolor(index, color);
+    strip.writeStrip();
 }
 
 void setup()
@@ -151,6 +169,7 @@ ISR(TIMER1_OVF_vect)
 }
 */
 
+/*
 void rainbowParty(uint8_t wait) {
   uint8_t i, j;
 
@@ -162,10 +181,10 @@ void rainbowParty(uint8_t wait) {
     strip.setLEDcolor(i+3, TEAL);
     strip.setLEDcolor(i+4, BLUE);
     strip.setLEDcolor(i+5, VIOLET);
- 
+
   }
-  strip.writeStrip();   
-  
+  strip.writeStrip();
+
   for (j=0; j < strip.numLEDs(); j++) {
 
     // now set every LED to the *next* LED color (cycling)
@@ -180,19 +199,10 @@ void rainbowParty(uint8_t wait) {
   }
 }
 
-// turn everything off (fill with BLACK)
-void stripOff(void) {
-  // turn all LEDs off!
-  for (uint8_t i=0; i < strip.numLEDs(); i++) {
-      strip.setLEDcolor(i, BLACK);
-  }
-  strip.writeStrip();   
-}
-
 // have one LED 'chase' around the strip
 void chaseSingle(uint8_t color, uint8_t wait) {
   uint8_t i;
-  
+
   // turn everything off
   for (i=0; i< strip.numLEDs(); i++) {
     strip.setLEDcolor(i, BLACK);
@@ -205,7 +215,7 @@ void chaseSingle(uint8_t color, uint8_t wait) {
       strip.setLEDcolor(i-1, BLACK);
     }
     strip.writeStrip();
-    delay(wait);  
+    delay(wait);
   }
   // turn off the last LED before leaving
   strip.setLEDcolor(strip.numLEDs() - 1, BLACK);
@@ -214,35 +224,39 @@ void chaseSingle(uint8_t color, uint8_t wait) {
 // fill the entire strip, with a delay between each pixel for a 'wipe' effect
 void colorWipe(uint8_t color, uint8_t wait) {
   uint8_t i;
-  
+
   for (i=0; i < strip.numLEDs(); i++) {
       strip.setLEDcolor(i, color);
-      strip.writeStrip();   
+      strip.writeStrip();
       delay(wait);
   }
 }
+*/
 
-int findPositionLargest(double data[], int arraySize) 
-{
-    int pos = 0;
-    double largest = data[0];
-    for (int i=0; i<arraySize; i++)
-    {
-        if (largest < data[i])
-        {
-            largest = data[i];
-            pos = i;
+int getHigher(double data[], int &index, bool &isPlus) {
+    int index = 0;
+    double largest = abs(data[0]);
+    isPlus = (data[0] > 0);
+    for (int i = 0; i< 3; i++) {
+        if (largest < abs(data[i])) {
+            largest = abs(data[i]);
+            isPlus = (data[i] > 0);
+            index = i;
         }
     }
-    return pos;
+
+    return largest;
 }
 
-    int x, y, z, i;
-  double xyz[3], gains[3], gains_orig[3];
-int pos = 0;
+int x, y, z, i;
 char data[3];
 
 void loop() {
+
+    bool isPlus = false;
+    unsigned int absValue = 0;
+    double xyz[3], gains[3], gains_orig[3];
+
 /*
    colorWipe(RED, 40);
    colorWipe(YELLOW, 40);
@@ -291,7 +305,7 @@ void loop() {
 
     Serial.write("End!");
 
-    delay(5000);    
+    delay(5000);
 */
 
     accel.getInterruptSource();
@@ -352,45 +366,37 @@ void loop() {
         Serial.print(" ");
     }
     Serial.println("");
-    //Serial.println(findPositionLargest(xyz, 3), DEC);
+    //Serial.println(findPositionLargest(xyz, 3), DEC); 
 
-    pos = findPositionLargest(xyz, 3);
-    if (xyz[pos] > 1.6) {
-        strip.wakeup();
-        colorWipe(RED, 40);
+    absValue = getHigher(xyz, index, isPlus);
+
+    // Recording :
+    // 1. Lock sur une valeur d'un axe supérieure à 0.7
+    // 2. On doit rester sur cette position > 0.7 pendant minimum 1 seconde
+    // 3. Accélération sur un axe > 1.6
+    // 4. Si tjrs sur le meme axe, on lance le record
+
+    // Record mode
+    if (absValue > 1.6) {
+        if (!isPlus) {
+            index *= 2;
+        }
+
+        ledOn(Leds[index], RED);
         vibrate(200);
 
-        delay(3000);
-        strip.blankPush();
-        strip.sleep(); 
-    } else if (xyz[pos] > 0.7) {
-        if (xyz[pos] > 0) {
+        record(Messages[index]);
 
-        } else {
+        delay(6000);
+        stop();
 
-        }
+        vibrate(200);
+
+        stripOff();
+    // Play mode
+    } else if (absValue > 0.7) {
+        
     }
-
-
-/*
-    if (x > y && x > z) {
-        Serial.println("X");
-    } else if (y < x && y < z) {
-        Serial.println("-Y");
-    } else if (z > x && z > y) {
-        Serial.println("Z");
-    } else if (x < y && x < z) {
-        Serial.println("-X");
-    } else if (y > x && y > z) {
-        Serial.println("Y");
-    } else if (z < x && z < y) {
-        Serial.println("-Z");
-    }
-*/
-
-    //delay(1000);
-
-    //Serial.write('.');
 }
 
 /*
