@@ -222,14 +222,14 @@ REFLECTOR_HEIGHT = 10;
 
 module reflector() {
     clear = 0.1;
-    edge_size = 1;
-    edge_thickness = 0.1;
-    hole_width = 5;
+    edge_size = 2;
+    edge_thickness = 0.2;
+    hole_width = 5.8;
     size = ((SIZE - RIDGE_WIDTH * 2) / 2) * sqrt(2) - clear;
     difference() {
         union() {
             rotate([0, 0, 45]) {
-                cylinder(r1 = 20, r2 = size, h = REFLECTOR_HEIGHT, $fn = 4, center = true);
+                cylinder(r1 = 5, r2 = size, h = REFLECTOR_HEIGHT, $fn = 4, center = true);
             }
 
             translate([0, 0, REFLECTOR_HEIGHT / 2 + edge_thickness / 2]) {
@@ -237,14 +237,14 @@ module reflector() {
             }
         }
 
-        translate([0, 0, 0.3]) {
+        translate([0, 0, 1.3]) {
             rotate([0, 0, 45]) {
-                cylinder(r1 = hole_width, r2 = SIZE / 2, h = REFLECTOR_HEIGHT + 1.01, $fn = 4, center = true);
+                cylinder(r1 = hole_width / sqrt(2), r2 = SIZE / 2, h = REFLECTOR_HEIGHT + 1.01, $fn = 4, center = true);
             }
         }
 
         translate([0, 0, 1]) {
-            cube(size = [5, 5, 50], center = true);
+            cube(size = [hole_width, hole_width, 50], center = true);
         }
     }
 }
@@ -276,10 +276,10 @@ if (1) {
     //reflector();
 
     //sides("4");
-    sides(which = "1", offset = 0) {
-    //sides(offset = 0) {
+    //%sides(which = "1", offset = 0) {
+    sides(offset = 0) {
         translate([0, 0, SIZE / 2 - REFLECTOR_HEIGHT / 2]) {
-            %reflector();
+            reflector();
         }
     }
 

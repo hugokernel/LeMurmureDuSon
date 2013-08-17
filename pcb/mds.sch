@@ -19004,7 +19004,7 @@ http://www.ee.siue.edu/~alozows/library/datasheets/BFR96.pdf</description>
 <part name="SP+" library="wirepad" deviceset="2,15/1,0" device=""/>
 <part name="SP-" library="wirepad" deviceset="2,15/1,0" device=""/>
 <part name="R8" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
-<part name="R6" library="rcl" deviceset="R-EU_" device="M0805"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="M0805" value="56k"/>
 <part name="GND2" library="SparkFun" deviceset="GND" device=""/>
 <part name="R3" library="rcl" deviceset="R-EU_" device="M0805" value="4.7k"/>
 <part name="R4" library="rcl" deviceset="R-EU_" device="M0805" value="4.7k"/>
