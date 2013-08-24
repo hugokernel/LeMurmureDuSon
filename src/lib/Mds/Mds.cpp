@@ -34,16 +34,26 @@ Mds::Mds(HL1606strip _strip, ADXL345 _accel):
 
 void interruptChg() {
     //mds.ledsColor(RED);
+#ifdef DEBUG
+    Serial.print("[Charge!]");
+#endif
+
+    //Mds::_isCharging = true;
 }
 
 void interruptLed() {
-    Mds::_isRecording = false;
+    // Led is low during recording
+    //Mds::_isRecording = false;
+
+#ifdef DEBUG
+    if (Mds::_isPlaying) {
+        Serial.println("[End playing !]");
+    }
+#endif
+
+    // Led is low when stop playing
     Mds::_isPlaying = false;
     Mds::_isBusy = false;
-
-    if (config.debugMode) {
-        Serial.println("[End]");
-    }
 }
 
 void Mds::init(void) {
@@ -68,6 +78,7 @@ void Mds::init(void) {
     UP(REC_PLAY);
 
     accel.powerOn();
+    compass = HMC5883L();
 
     event = event_t();
 
@@ -139,8 +150,14 @@ bool Mds::isBusy() {
     return Mds::_isBusy;
 }
 
+bool Mds::isCharging() {
+    return !READ(CHG);
+}
+
 bool Mds::record(uint8_t index) {
+
     DOWN(REC_PLAY);
+
     // Todo: Sleep for 30ns
     delay(1);
     DOWN(Messages[index]);
@@ -176,8 +193,15 @@ bool Mds::play(uint8_t index) {
 }
 
 bool Mds::stop() {
-    msgUnselect();
+    if (Mds::_isRecording) {
+        Mds::_isRecording = false;
+    } else if (Mds::_isPlaying) {
+        DOWN(Messages[currentMsg]);
+        Mds::_isPlaying = false;
+    }
 
+    msgUnselect();
+    Mds::_isBusy = false;
     currentMsg = -1;
 }
 
@@ -256,14 +280,17 @@ int Mds::getHigher(double data[], int &index, bool &sign) {
 */
 
 int Mds::handlePosition(position_t &pos) {
+    uint8_t axes[] = { 'x', 'y', 'z' };
     pos.largest = abs(pos.xyz[0]);
     pos.sign = (pos.xyz[0] > 0);
     pos.index = 0;
+    pos.axe = axes[0];
     for (int i = 0; i < 3; i++) {
         if (pos.largest < abs(pos.xyz[i])) {
             pos.largest = abs(pos.xyz[i]);
             pos.sign = (pos.xyz[i] > 0);
             pos.index = i;
+            pos.axe = axes[i];
         }
     }
 }
@@ -315,8 +342,14 @@ Serial.println(position.side);
 */
 }
 
+void Mds::resetEvent() {
+    event = event_t();
+}
+
 //void Mds::detectEvent(event_t &ev) {
 void Mds::detectEvent() {
+
+    static uint8_t pafCounter = 0;
 
     /**
      *  Playing
@@ -336,37 +369,74 @@ void Mds::detectEvent() {
 */
 
 
-    if (event.current_side != SIDE_UNKNOW && event.current_side != position.side) {
-        //pos_reset();
-        event = event_t();
+    //if (event.current_side != SIDE_UNKNOW && event.current_side != position.side) {
+    if (event.current_axe != position.axe) {
+        pafCounter++;
 
-        //Serial.println("RESET 1");
-        //event = cube_pos_t();
+        if (pafCounter > 2) {
+/*
+Serial.print("[Axe Reset : ");
+Serial.print((char)event.current_axe);
+Serial.print(", ");
+Serial.print((char)position.axe);
+Serial.println("]");
+*/
+            resetEvent();
+            //event = cube_pos_t();   
+        }
+    } else {
+        pafCounter = 0;
     }
 
-    if (event.counter < COUNTER_VALID_VALUE && position.largest > THRESHOLD_INC_MIN) {
+    if (event.counter < COUNTER_VALID_VALUE
+        &&
+        position.largest > THRESHOLD_INC_MIN
+        &&
+        position.largest < THRESHOLD_INC_MAX
+        ) {
         event.current_side = position.side;
+        event.current_axe = position.axe;
+
+        /*
+        Serial.print("[");
+        Serial.print((char)event.current_axe);
+        Serial.print("]");
+        */
+
         event.counter += COUNTER_INC_VALUE;
         //Serial.println("INC");
-    } else if (position.largest < THRESHOLD_DEC_MIN) {
+    }
+    /*else if (position.largest < THRESHOLD_DEC_MIN) {
         event.counter -= COUNTER_DEC_VALUE;
         //Serial.println("DEC");
     }
+    */
 
     if (event.counter <= 0) {
         //Serial.println("RESET 2");
         //Serial.print(event.processed);
         //pos_reset();
 
-        event = event_t();
+        //resetEvent();
         //event = cube_pos_t();
+
+        event.current_side = SIDE_UNKNOW;
+        event.counter = 0;
+        event.validated = false;
+
+        event.processed  = false;
+        event.last_validated_side = -1;
+        //event.last_validated_axe = 0;
+
+        //Serial.print("[Reset!]");
     }
 
     if (event.counter == COUNTER_VALID_VALUE) {
         //Serial.println("HERE!!!!");
         event.validated = true;
+        event.last_validated_axe = position.axe;
     }
-
+//return;
     /**
      *  Recording :
      *  1. Lock sur une valeur d'un axe supérieure à 0.7
@@ -374,28 +444,48 @@ void Mds::detectEvent() {
      *  3. Accélération sur un axe > 1.6
      *  4. Si tjrs sur le meme axe, on lance le record
      */
-    /*
-    if (event.validated) {
-        Serial.println(position.largest);
+    //if (event.validated) {
+    if (event.last_validated_axe == position.axe) {
+
         if (position.largest > THRESHOLD_SHAKED_INC_MIN) {
-            Serial.print("[SHAKE]");
+            /*
+            if (event.shaked_counter == 0) {
+                event.last_validated_side = event.current_side;
+            }
+            */
+
             event.shaked_counter += COUNTER_SHAKED_INC_VALUE;
+            Serial.print("+");
         } else if (position.largest < COUNTER_SHAKED_DEC_VALUE) {
-            event.shaked_counter -= COUNTER_SHAKED_DEC_VALUE;
+            if (event.shaked_counter > COUNTER_SHAKED_DEC_VALUE) {
+                Serial.print("-");
+                event.shaked_counter -= COUNTER_SHAKED_DEC_VALUE;
+            }
         }
 
+/*
+Serial.print("[");
+Serial.print(event.shaked_counter);
+Serial.print("]");
+*/
         if (event.shaked_counter <= 0) {
             event.shaked_counter = 0;
             event.shaked = false;
+            //event.last_validated_side = -1;
+            //Serial.print("[Reset Shaked!]");
         }
 
-        if (event.shaked_counter == COUNTER_SHAKED_VALID_VALUE) {
-            event.shaked = true;
+        if (event.shaked_counter >= COUNTER_SHAKED_VALID_VALUE) {
+            //Serial.print("Here : ");
+            //Serial.print(event.last_validated_side);
+            //Serial.print(", ");
+            //Serial.println(event.current_side);
+            //if (event.last_validated_side == event.current_side) {
+                //Serial.print("Shaked !");
+                event.shaked = true;
+            //}
         }
     }
-    */
-
-    //memcpy(&ev, &event, sizeof(event_t));
 
 /*
     Serial.print("event: ");

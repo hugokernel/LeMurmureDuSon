@@ -14,33 +14,6 @@ uint8_t Colors[6] = {
 
 extern uint8_t Leds[6];
 
-//#define P   Serial.print
-//#define PLN Serial.println
-//SerialCommand sCmd;
-
-//uint8_t pos_current_side = SIDE_UNKNOW;
-
-//uint8_t pos_counter = 0;
-//bool pos_validated = false;
-
-//uint8_t pos_shaked_counter = 0;
-//bool pos_shaked = false;
-
-//cube_pos_t cpos; // = cube_pos();
-
-/*
-inline void pos_reset() {
-    //cpos = cube_pos();
-    /*
-    cpos.counter = 0;
-    cpos.validated = false;
-    cpos.shaked_counter = 0;
-    cpos.shaked = false;
-    cpos.current_side = SIDE_UNKNOW;
-    //
-}
-*/
-
 void cmd_play();
 void cmd_record();
 void unrecognized(const char *);
@@ -52,7 +25,7 @@ ADXL345 accel = ADXL345();
 
 Mds mds(strip, accel);
 
-//ADXL345 accele = ADXL345();
+volatile bool tick = false;
 
 void setup()
 {
@@ -64,7 +37,8 @@ void setup()
     sCmd.addCommand("record",   cmd_record);
     sCmd.addCommand("stop",     cmd_stop);
     sCmd.addCommand("config",   cmd_config);
- 
+    sCmd.addCommand("sensor",   cmd_sensor);
+
     mds.init();
 
 /*
@@ -88,98 +62,100 @@ void setup()
 
     //pos_reset();
 
-    interrupts(); // enable all interrupts
-    return;
+//    interrupts(); // enable all interrupts
+//    return;
 
     // initialize timer1
     noInterrupts(); // disable all interrupts
     TCCR1A = 0;
     TCCR1B = 0;
 
-    TCNT1 = 34286; // preload timer 65536-16MHz/256/2Hz
-    TCCR1B |= (1 << CS12); // 256 prescaler
+    TCNT1 = 0;//34286; // preload timer 65536-16MHz/256/2Hz
+    TCCR1B |= (1 << CS11); // 256 prescaler
     TIMSK1 |= (1 << TOIE1); // enable timer overflow interrupt
+
+    interrupts(); // enable all interrupts
 }
 
-//ISR(TIMER1_OVF_vect)
-void paf()
+ISR(TIMER1_OVF_vect)
 {
-
     //TCNT1 = 0; // reset timer ct to 130 out of 255
     //TCNT1 = 34286; // preload timer
     TCNT1 = 0; // preload timer
     //TIFR1 = 0x100; // timer2 int flag reg: clear timer overflow flag
+
+    tick = true;
 }
 
-//int x, y, z, i;
-//char data[3];
-
-/* M1 : OK
- * M2 : OK
- * M3, A6 : BAD
- * M4, A7 : BAD
- */
-#define TESTPAD M1
-
-/*
- *
- * M1, M2, M5, M6, M7, M8
- * 0, 3, 4, 5 : M1, M6, M7, M8
- */
+double data[10];
+uint8_t data_index = 0;
+double result = 0;
 
 void loop() {
+
+    //static bool chargingHandled = false;
+
+    while (!tick) {
+        sCmd.readSerial();
+        delay(1);
+    }
+
+    // Stop timer 1 overflow
+    TIMSK1 ^= (1 << TOIE1);
+
 /*
-    static bool processed = false;
-    //cube_pos_t cpos;
+    data[data_index] = mds.position.largest;
 
-    pinMode(TESTPAD, OUTPUT);
+/*
+Serial.print("[");
+Serial.print(mds.position.largest);
+Serial.print(", ");
+Serial.print(data[data_index]);
+Serial.print("]");
+*-/
 
-    digitalWrite(TESTPAD, HIGH);
-    delay(2000);
-    digitalWrite(TESTPAD, LOW);
-    delay(2000);
+    data_index++;
+    if (data_index >= sizeof(data)) {
+        data_index = 0;
+    }
 
-    return;
+    result = 0;
+    for (int i = 0; i < 10; i++) {
+        result += data[i];
+//        Serial.print(data[i]);
+//        Serial.print(", ");
+    }
+
+    //result /= 10;
+
+    Serial.print(result);
+    Serial.println();
 */
-    //Serial.print(".");
-
-    //event_t ev;
-    //mds.detectEvent(ev);
-    mds.detectEvent();
-
-    sCmd.readSerial();
-    delay(1);
-
-    //P(".");
-    //return;
-    /*
-    Serial.print(", out: ");
-    Serial.println(ev.validated);
-*/
-    delay(1);
-
-    //Serial.print("Processed : ");
-    //Serial.println(ev.processed);
-
-//    return;
-
-    //paf();
-
-    //paf(cpos);
-
-//    mds.accel.get_Gxyz(mds.position.xyz);
-//    return;
-
     // Red if charge in progress
     //if (READ(CHG)) {
     //    mds.ledsColor(RED);
     //}
 
+    if (mds.isCharging()) {
+        mds.rainbowParty(500);
+        return;
+    }
+
+    mds.detectEvent();
+
     if (!mds.event.processed) {
+
+        /*
+        if (mds.isRecording()) {
+            mds.event.processed = true;
+//Serial.print("skip");
+            return;
+        }
+        */
 
         // Play mode
         if (mds.event.validated) {
-
+            //Serial.print(mds.position.largest);
             Serial.print("Play message #");
             Serial.println(mds.event.current_side);
 
@@ -193,40 +169,74 @@ void loop() {
             mds.event.processed = true;
         }
     } else {
-        // Record mode
-        //if (mds.event.shaked) {
-        if (mds.position.largest > 1.5) {
 
-            /*
-            Serial.print("M3:");
-            Serial.print(M3);
-            Serial.print(", Messages[2]:");
-            Serial.println(Messages[2]);
-            */
+        if (mds.event.shaked) {
+            if (mds.isRecording()) {
+                Serial.print("Stop recording !");
 
-            Serial.print("Record message #");
-            Serial.print(mds.event.current_side);
+                mds.stop();
+            } else {
+                mds.vibrate(50);
 
-            // Side led on and vibrate !
-            mds.ledOn(Leds[mds.event.current_side], RED);
-            //mds.vibrate(200);
+                Serial.print("Record message #");
+                Serial.print(mds.event.current_side);
 
-            // Start record
-            mds.record(mds.event.current_side);
+                mds.ledOn(Leds[mds.event.current_side], RED);
 
-            // 6 seconds later, stop !
-            delay(mds.config.msgDuration);
-            mds.stop();
+                mds.record(mds.event.current_side);
 
-            Serial.println(" Stop !");
+                // 6 seconds later, stop !
+                //delay(mds.config.msgDuration);
+            }
 
-            // Vibrate, led off !
-            //mds.vibrate(200);
-            mds.ledsOff();
-
-            mds.event.processed = false;
+            mds.event.shaked = false;
+            mds.event.shaked_counter = 0;
+            //mds.event.processed = true;
         }
+
+        /*
+        // Record mode
+        if (mds.event.shaked) {
+Serial.print("shaked");
+            if (mds.isRecording()) {
+                mds.stop();
+
+                mds.resetEvent();
+                mds.event.processed = true;
+
+                Serial.println(" Stop !");
+
+                // Vibrate, led off !
+                //mds.vibrate(200);
+                mds.ledsOff();
+
+                mds.event.processed = false;
+            } else {
+                P("Shake detected !");
+                mds.vibrate(50);
+
+                Serial.print("Record message #");
+                Serial.print(mds.event.current_side);
+
+                // Side led on and vibrate !
+                mds.ledOn(Leds[mds.event.current_side], RED);
+                //mds.vibrate(200);
+
+                // Start record
+                mds.record(mds.event.current_side);
+
+                mds.resetEvent();
+                mds.event.processed = true;
+
+                // 6 seconds later, stop !
+                //delay(mds.config.msgDuration);
+            }
+        }
+        */
     }
+
+    tick = false;
+    TIMSK1 |= (1 << TOIE1);
 }
 
 /*
@@ -374,7 +384,116 @@ void cmd_config() {
     }
 }
 
+void cmd_sensor() {
+    double data[3];
+    int error = 0;
+    float headingDegrees, heading; 
+
+    error = mds.compass.SetScale(1.3);
+    if (error != 0) {
+        //Serial.println(mds.compass.GetErrorText(error));
+    }
+  
+    error = mds.compass.SetMeasurementMode(Measurement_Continuous);
+    if (error != 0) {
+        //Serial.println(mds.compass.GetErrorText(error));
+    }
+
+
+    while (true) {
+
+        while (Serial.available() > 0) {
+            if (Serial.read()) {
+                return;
+            }
+        }
+
+        /*
+        paf();
+        delay(1000);
+        continue;
+        */
+
+        P("Charger ");
+        PLN(READ(CHG));
+
+        MagnetometerRaw raw = mds.compass.ReadRawAxis();
+        heading = atan2(raw.YAxis, raw.XAxis);
+
+        // Correct for when signs are reversed.
+        if (heading < 0) {
+            heading += 2 * PI;
+        }
+
+        P("Magnetometer : ");
+        P(heading * 180 / M_PI);
+        PLN(" degree");
+
+/*
+        P("Magnetometer x:");
+        P(raw.XAxis);
+        P(", y:");
+        P(raw.YAxis);
+        P(", z:");
+        PLN(raw.ZAxis);
+*/
+
+        accel.get_Gxyz(data);
+        P("Accelerometer x:");
+        P(data[0]);
+        P(", y:");
+        P(data[1]);
+        P(", z:");
+        PLN(data[2]);
+
+        delay(1000);
+    }
+
+    PLN("End");
+}
+
 void unrecognized(const char *command) {
     PLN("Command not found !");
+}
+
+void magnetometerDump()
+{
+    // Retrive the raw values from the compass (not scaled).
+    MagnetometerRaw raw = mds.compass.ReadRawAxis();
+
+    // Retrived the scaled values from the compass (scaled to the configured scale).
+    MagnetometerScaled scaled = mds.compass.ReadScaledAxis();
+
+    // Calculate heading when the magnetometer is level, then correct for signs of axis.
+    float heading = atan2(raw.YAxis, raw.XAxis);
+
+    // Correct for when signs are reversed.
+    if (heading < 0) {
+        heading += 2 * PI;
+    }
+
+    // Convert radians to degrees for readability.
+    float headingDegrees = heading * 180/M_PI; 
+
+    // Output the data via the serial port.
+    Serial.print("Raw:\t");
+    Serial.print(raw.XAxis);
+    Serial.print("   ");   
+    Serial.print(raw.YAxis);
+    Serial.print("   ");   
+    Serial.print(raw.ZAxis);
+    Serial.print("   \tScaled:\t");
+
+    Serial.print(scaled.XAxis);
+    Serial.print("   ");   
+    Serial.print(scaled.YAxis);
+    Serial.print("   ");   
+    Serial.print(scaled.ZAxis);
+
+    Serial.print("   \tHeading:\t");
+    Serial.print(heading);
+    Serial.print(" Radians   \t");
+    Serial.print(headingDegrees);
+    Serial.println(" Degrees   \t");
 }
 

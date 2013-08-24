@@ -4,6 +4,7 @@
 
 #include "Wire.h"
 #include "ADXL345.h"
+#include "HMC5883L.h"
 #include "HL1606strip.h"
 #include <EEPROM.h>
 
@@ -31,6 +32,8 @@
 #define STRIP_C 13
 #define STRIP_L 10
 
+#define DEBUG
+
 typedef enum Sides {
     SIDE_UNKNOW = -1,
     SIDE_0 = 0,
@@ -48,9 +51,11 @@ typedef struct position_t {
     double largest; // Most absolute upper sensor value
     bool sign;      // Positive value or not ?
     uint8_t side;   // Calculated upwardly side
+    uint8_t axe;
 };
 
 #define THRESHOLD_INC_MIN   0.6     // Seuil de déclenchement mini
+#define THRESHOLD_INC_MAX   1.1     // Seuil de déclenchement max
 #define THRESHOLD_DEC_MIN   0.5     // Seuil de déclenchement pour reseter
 
 #define COUNTER_VALID_VALUE 10      // Nombre de position mini
@@ -83,21 +88,30 @@ MdsConfig = {
 
 typedef struct event_t {
     uint8_t current_side;
+    uint8_t current_axe;
+
     uint8_t counter;
     bool validated;
 
     uint8_t shaked_counter;
     bool shaked;
 
+    uint8_t last_validated_side;
+    uint8_t last_validated_axe;
+
     bool processed;
 
     event_t() :
         current_side(SIDE_UNKNOW),
+        current_axe(0),
+
         counter(0),
         validated(false),
         shaked_counter(0),
         shaked(0),
-        processed(false)
+        processed(false),
+        last_validated_side(-1),
+        last_validated_axe(0)
         { }
 };
 
@@ -121,11 +135,13 @@ public:
     volatile static bool _isPlaying;
     volatile static bool _isRecording;
     volatile static bool _isBusy;
+    //volatile static bool _isCharging;
 
     HL1606strip strip;
     //HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, 6);
 
     ADXL345 accel;
+    HMC5883L compass;
 
     position_t position;
     event_t event;
@@ -142,6 +158,8 @@ public:
     bool isPlaying();
     bool isRecording();
     bool isBusy();
+
+    bool isCharging();
 
     bool record(uint8_t);
     bool play(uint8_t);
@@ -163,7 +181,7 @@ public:
     void processAccel();
     //void processAccel(position_t &);
 
-    //void detectEvent(event_t &);
+    void resetEvent();
     void detectEvent();
 
     //void setCallbacks(void *(), void *());
