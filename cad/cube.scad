@@ -24,6 +24,8 @@ GY27_THICKNESS = 1.6;
 GY27_HEIGHT = 3.8;
 GY27_HOLE_DIAMETER = 3;
 
+REFLECTOR_HEIGHT = 12;
+
 module gy27() {
     difference() {
         cube(size = [GY27_WIDTH, GY27_LENGTH, GY27_THICKNESS], center = true);
@@ -54,122 +56,6 @@ module electronic() {
         }
     }
 }
-
-/*
-module electronic_support() {
-    width = 48;
-    thickness = 3;
-    offset = 15;
-
-    module gy27_pos(offset = 0) {
-        translate([-15 + offset, -23, 0]) {
-            rotate([90, 45, 90]) {
-                child(0);
-            }
-        }
-    }
-
-    difference() {
-        cube(size = [width, 100, thickness], center = true);
-
-        translate([0, offset, 0]) {
-            cube(size = [ELEC_WIDTH, ELEC_LENGTH, 10], center = true);
-        }
-
-        for(pos = [
-            [-5, -15, -5],
-            [-5, -35, -5],
-            [5, -35, -5],
-            [5, -15, -5],
-            [15, -15, -5],
-            [15, -35, -5]
-        ]) {
-            translate(pos) {
-                cylinder(r = 2, h = 10);
-            }
-        }
-
-        gy27_pos() {
-            cube(size = [GY27_WIDTH, GY27_LENGTH, GY27_HEIGHT], center = true);
-            %gy27();
-        }
-    }
-
-    gy27_pos(2.6) {
-        gy27();
-    }
-
-    for(pos = [
-        [ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2 + offset, 0],
-        [-ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2 + offset, 0],
-        [ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2 + offset, 0],
-        [-ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2 + offset, 0],
-    ]) {
-        translate(pos) {
-            difference() {
-                //cylinder(r = 3.7, h = thickness, center = true);
-                cylinder(r = 6.7, h = thickness, center = true, $fn = 6);
-
-                translate([0, 0, -5]) {
-                    cylinder(r = ELEC_HOLE_DIAMETER / 2, h = 10);
-                }
-            }
-        }
-    }
-}
-
-module holes() {
-    hole_offset = RIDGE_WIDTH - 2.4;
-
-    for (rot = [
-        [0, 0, 0],
-        [0, 90, 0],
-        [90, 0, 0]
-    ]) {
-        rotate(rot) {
-            for(pos = [
-                [SIZE / 2 - hole_offset, SIZE / 2 - hole_offset, 0],
-                [-SIZE / 2 + hole_offset, SIZE / 2 - hole_offset, 0],
-                [SIZE / 2 - hole_offset, -SIZE / 2 + hole_offset, 0],
-                [-SIZE / 2 + hole_offset, -SIZE / 2 + hole_offset, 0],
-            ]) {
-                translate(pos) {
-                    cylinder(r = HOLE_DIAMETER / 2, h = 150, center = true);
-
-                    for (i = [0 : $children - 1]) {
-                        child(i);
-                    }
-                }
-            }
-        }
-    }
-}
-
-module main() {
-    nut_diameter = 5;
-    nut_height = 1.9;
-
-    difference() {
-        cube(size = [SIZE, SIZE, SIZE], center = true);
-        cube(size = [SIZE * 2, SIZE - RIDGE_WIDTH * 2, SIZE - RIDGE_WIDTH * 2], center = true);
-        cube(size = [SIZE - RIDGE_WIDTH * 2, SIZE * 2, SIZE - RIDGE_WIDTH * 2], center = true);
-        cube(size = [SIZE - RIDGE_WIDTH * 2, SIZE - RIDGE_WIDTH * 2, SIZE * 2], center = true);
-        cube(size = [SIZE - THICKNESS * 2, SIZE - THICKNESS * 2, SIZE - THICKNESS * 2], center = true);
-
-        holes() {
-            translate([0, 0, SIZE / 2 - THICKNESS - nut_height * .3]) {
-                cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
-            }
-
-            translate([0, 0, - SIZE / 2 + THICKNESS - nut_height + 0.5]) {
-                cylinder(r = nut_diameter / 2, h = nut_height, $fn = 6);
-            }
-        }
-    }
-}
-*/
-
-REFLECTOR_HEIGHT = 12;
 
 module front(index, connection) {
     edge_size = SIZE / 2 * sqrt(2);
@@ -263,7 +149,18 @@ module front(index, connection) {
                 [-SIZE / 2 + RIDGE_WIDTH + 2, RIDGE_WIDTH / 2, 0],
             ]) {
                 translate(pos) {
-                    %cylinder(r = HOLE_DIAMETER / 2 - holes_clear, h = 150, center = true);
+                    cylinder(r = HOLE_DIAMETER / 2 - holes_clear, h = 150, center = true);
+                }
+            }
+        }
+    }
+
+    module mark(index) {
+        diameter = 3;
+        for (i = [1 : index]) {
+            rotate([0, 0, 45]) {
+                translate([- SIZE / 2 + i * diameter * 2, SIZE / 2 - RIDGE_WIDTH / 2, 0]) {
+                    cylinder(r = diameter / 2, h = 1, center = true, $fn = 3);
                 }
             }
         }
@@ -304,179 +201,62 @@ module front(index, connection) {
         }
 
         if (index == 3) {
-            rotate([0, 0, 90]) {
-                holes_test();
-            }
+            holes_test();
+        }
+
+        if (index) {
+            mark(index);
         }
     }
-
-    // Todo: faire une marque sur chaque face pour la reconnaitre basé sur le index
 }
 
-module mainv2() {
+module main(side = -1) {
 
     offset = 10;
-    //cube(size = [SIZE, SIZE, SIZE], center = true);
 
     for (data = [
         [0, [0, 0, -SIZE / 2 - offset], [0, 0, 45], [false, false, false, false]], // Bottom
         [1, [0, 0, SIZE / 2 + offset], [180, 0, 45], [true, true, true, true]],    // Top
         [2, [0, SIZE / 2 + offset, 0], [90, 45, 0], [false, false, true, false]],
-        [3, [0, -SIZE / 2 - offset, 0], [-90, 45, 0], [false, false, false, true]],
+        [3, [0, -SIZE / 2 - offset, 0], [-90, 135, 0], [false, false, true, false]],
         [4, [-SIZE / 2 - offset, 0, 0], [90, 45, 90], [false, true, true, true]],
         [5, [SIZE / 2 + offset, 0, 0], [90, 45, -90], [false, true, true, true]],
     ]) {
-        translate(data[1]) {
-            rotate(data[2]) {
-                front(data[0], data[3]);
-            }
-        }
-    }
-
-/*
-    translate([0, 0, - SIZE / 2]) {
-        rotate([0, 0, 45]) {
-            cylinder(r1 = edge_size, r2 = edge_size - RIDGE_WIDTH * 2, h = RIDGE_WIDTH, $fn = 4);
-        }
-    }
-*/
-}
-
-/*
-module all() {
-    main();
-
-    intersection() {
-        cube(size = [SIZE, SIZE, SIZE], center = true);
-        rotate([90, 90, 45]) {
-            electronic_support();
-            //%electronic();
-        }
-    }
-}
-
-module side(type = 0, text = "", text_rot = [0, 0, 0], text_pos = [0, 0, 0]) {
-    nut_head_diameter = 4.6; // Before : 4: serré, 5: too large
-    nut_head_height = 1.3;
-    thickness = 2;
-    text_deep = 1;
-    difference() {
-        translate([0, 0, SIZE / 2 + thickness / 2]) {
-            // Biggest type
-            if (type == 0) {
-                cube(size = [SIZE + thickness * 2, SIZE + thickness * 2, 2], center = true);
-            // Medium type
-            } else if (type == 1) {
-                cube(size = [SIZE, SIZE + thickness * 2, 2], center = true);
-            // Smallest type
-            } else if (type == 2) {
-                cube(size = [SIZE, SIZE, 2], center = true);
-            }
-        }
-
-        translate([0, 0, SIZE / 2 - nut_head_height + thickness]) {
-            holes() {
-                cylinder(r = nut_head_diameter / 2, h = 2);
-            }
-        }
-
-        translate([-10, -15, SIZE / 2 + thickness - text_deep]) {
-            scale([3.5, 3.5, 1]) {
-                rotate(text_rot) {
-                    translate(text_pos) {
-                        linear_extrude(height = 20) {
-                            write(text);
-                        }
-                    }
+        if (side < 0 || side == data[0]) {
+            translate(data[1]) {
+                rotate(data[2]) {
+                    front(data[0], data[3]);
                 }
             }
         }
     }
 }
 
-module reflector() {
-    clear = 0.1;
-    edge_size = 2;
-    edge_thickness = 0.2;
-    hole_width = 5.8;
-    size = ((SIZE - RIDGE_WIDTH * 2) / 2) * sqrt(2) - clear;
-    difference() {
-        union() {
-            rotate([0, 0, 45]) {
-                cylinder(r1 = 5, r2 = size, h = REFLECTOR_HEIGHT, $fn = 4, center = true);
-            }
+module getside(side) {
+    data = [
+        [0, 0, 0],
+        [180, 0, 0],
+        [-90, 0, 0],
+        [90, 0, 0],
+        [0, -90, 0],
+        [0, 90, 0]
+    ];
 
-            translate([0, 0, REFLECTOR_HEIGHT / 2 + edge_thickness / 2]) {
-                cube(size = [SIZE - RIDGE_WIDTH * 2 + edge_size, SIZE - RIDGE_WIDTH * 2 + edge_size, edge_thickness], center = true);
-            }
-        }
-
-        translate([0, 0, 1.3]) {
-            rotate([0, 0, 45]) {
-                cylinder(r1 = hole_width / sqrt(2), r2 = SIZE / 2, h = REFLECTOR_HEIGHT + 1.01, $fn = 4, center = true);
-            }
-        }
-
-        translate([0, 0, 1]) {
-            cube(size = [hole_width, hole_width, 50], center = true);
-        }
-    }
-}
-*/
-
-module sides(which = -1, offset = 30) {
-    for (data = [
-        [[0, 0, offset],    [0, 0, 0],      0, "1", [0, 0, 90],     [1.5, -7.5, 0]],
-        [[0, 0, -offset],   [180, 0, 0],    0, "6"],
-        [[offset, 0, 0],    [0, 90, 0],     1, "2", [0, 0, 90],     [1.5, -7.5, 0]],
-        [[-offset, 0, 0],   [0, -90, 0],    1, "5", [0, 0, -90],    [-7, -2, 0]],
-        [[0, -offset, 0],   [90, 0, 0],     2, "4"],
-        [[0, offset, 0],    [-90, 0, 0],    2, "3", [0, 0, 180],    [-6, -9, 0]]
-    ]) {
-        if (which == -1 || which == data[3]) {
-            translate(data[0]) {
-                rotate(data[1]) {
-                    side(data[2], data[3], data[4], data[5]);
-
-                    child(0);
-                }
-            }
-        }
+    rotate(data[side]) {
+        main(side);
     }
 }
 
-if (1) {
+if (0) {
 
     intersection() {
         translate([0, SIZE / 2, -SIZE / 2]) {
             //cube(size = [100, 30, 10], center = true);
         }
-        mainv2();
+        main();
     }
 
-    //reflector();
-/*
-    all();
-
-    //reflector();
-
-    //sides("4");
-    //%sides(which = "1", offset = 0) {
-    sides(offset = 0) {
-        translate([0, 0, SIZE / 2 - REFLECTOR_HEIGHT / 2]) {
-            reflector();
-        }
-    }
-*/
 } else {
-    difference() {
-        rotate([45, 0, 0]) {
-            all();
-        }
-
-        translate([0, 0, 75]) {
-            cube(size = [150, 150, 150], center = true);
-        }
-    }
+    getside(5);
 }
 
