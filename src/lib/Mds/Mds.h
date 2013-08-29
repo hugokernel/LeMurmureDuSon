@@ -18,8 +18,8 @@
 
 #define M1 A2
 #define M2 A3
-#define M3 A6 // ?
-#define M4 A7 // ?
+#define M3 20 // PB6
+#define M4 21 // PB7
 #define M5 4
 #define M6 7
 #define M7 6
@@ -70,7 +70,7 @@ typedef struct position_t {
 
 #define CONFIG_START    0
 #define MDS_VERSION     "0.1"
-#define MSG_DURATION    6000
+#define MSG_DURATION    1000
 #define DEBUG_MODE      false
 
 typedef struct config_t {
@@ -121,6 +121,8 @@ private:
     //int getHigher(double [], int &, bool &);
     int handlePosition(position_t &);
 
+    void msgDown(uint8_t);
+    void msgUp(uint8_t);
     //void (*_validated)();
     //void (*_shaked());
 
@@ -138,7 +140,6 @@ public:
     //volatile static bool _isCharging;
 
     HL1606strip strip;
-    //HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, 6);
 
     ADXL345 accel;
     HMC5883L compass;

@@ -2,8 +2,8 @@
 #include "Mds.h"
 
 uint8_t Messages[8] = {
-    //M1, M2, M3, M4, M5, M6, M7, M8
-    M1, M2, M5, M6, M7, M8
+    M1, M2, M3, M4, M5, M6, M7, M8
+    //M1, M2, M5, M6, M7, M8
 };
 
 uint8_t Sides[6] = {
@@ -60,6 +60,8 @@ void Mds::init(void) {
 
     loadConfig();
 
+    DDRB |= (1 << DDB6) | (1 << DDB7);
+
     pinMode(VIBRATOR, OUTPUT);
     pinMode(CHG, INPUT);
 
@@ -83,7 +85,7 @@ void Mds::init(void) {
     event = event_t();
 
     attachInterrupt(0, interruptLed, FALLING);
-    attachInterrupt(1, interruptChg, FALLING);
+    //attachInterrupt(1, interruptChg, FALLING);
 
  /*
     //accel.setRangeSetting(2);
@@ -128,12 +130,12 @@ void Mds::saveConfig() {
 }
 
 inline void Mds::msgSelect(uint8_t index) {
-    DOWN(Messages[index]);
+    msgDown(Messages[index]);
 }
 
 inline void Mds::msgUnselect() {
     for (char i = 0; i < sizeof(Messages); i++) {
-        UP(Messages[i]);
+        msgUp(Messages[i]);
     }
 }
 
@@ -160,7 +162,7 @@ bool Mds::record(uint8_t index) {
 
     // Todo: Sleep for 30ns
     delay(1);
-    DOWN(Messages[index]);
+    msgDown(Messages[index]);
 
     currentMsg = index;
 
@@ -168,23 +170,43 @@ bool Mds::record(uint8_t index) {
     Mds::_isBusy = true;
 }
 
+void Mds::msgDown(uint8_t value) {
+    if (value == M3) {
+        PORTB &= ~(1 << PORTB6);
+    } else if (value == M4) {
+        PORTB &= ~(1 << PORTB7);
+    } else {
+        DOWN(value);
+    }
+}
+
+void Mds::msgUp(uint8_t value) {
+    if (value == M3) {
+        PORTB |= (1 << PORTB6);
+    } else if (value == M4) {
+        PORTB |= (1 << PORTB7);
+    } else {
+        UP(value);
+    }
+}
+
 bool Mds::play(uint8_t index) {
 
     if (Mds::_isPlaying) {
-        DOWN(Messages[currentMsg]);
+        msgDown(Messages[currentMsg]);
         delay(20);
-        UP(Messages[currentMsg]);
+        msgUp(Messages[currentMsg]);
         delay(20);
     }
 
     UP(REC_PLAY);
     // Todo: Sleep for 30ns
     delay(1);
-    DOWN(Messages[index]);
+    msgDown(Messages[index]);
     
     // 225k / fs = ~18ms
     delay(20); 
-    UP(Messages[index]);
+    msgUp(Messages[index]);
 
     currentMsg = index;
 
@@ -196,7 +218,7 @@ bool Mds::stop() {
     if (Mds::_isRecording) {
         Mds::_isRecording = false;
     } else if (Mds::_isPlaying) {
-        DOWN(Messages[currentMsg]);
+        msgDown(Messages[currentMsg]);
         Mds::_isPlaying = false;
     }
 
