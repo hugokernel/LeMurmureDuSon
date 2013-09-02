@@ -65,8 +65,22 @@ module front(index, connection) {
         length = 10;
         height = 8;
 
-        clear = 0.2;
-        clear_height = 6;
+        clear = 0.4;
+        clear_height = 8;
+
+        module _plot(clear = 1, clear_height = 1) {
+            //cube(size = [length + clear, width + clear, height + clear_height], center = true);
+            //cube(size = [length - 5 + clear, width + 2 + clear, height + clear_height], center = true);
+
+            scale([clear, clear, clear_height]) {
+                translate([0, -4, 0.5]) {
+                    linear_extrude(height = height, center = true) {
+                        //polygon([[-5,0],[-3,0],[-3,-1],[3,-1],[3,0],[5,0],[5,3],[0,5],[-5,3]]);                
+                        polygon([[0,1],[5,4],[0,7],[-5,4]]);                
+                    }
+                }
+            }
+        }
 
         for (data = [
             [0, SIZE / 2 - RIDGE_WIDTH / 2, 4.5],
@@ -75,12 +89,11 @@ module front(index, connection) {
         ]) {
             translate(data) {
                 if (add && !substract) {
-                    cube(size = [length, width, height], center = true);
-                    cube(size = [length - 5, width + 2, height], center = true);
+                    _plot();
                 } else if (substract) {
                     rotate([90, 0, 0]) {
-                        cube(size = [length + clear, width + clear, height + clear_height], center = true);
-                        cube(size = [length - 5 + clear, width + 2 + clear, height + clear_height], center = true);
+                        //_plot(clear, clear_height);
+                        _plot(1.1, 1.3);
                     }
                 }
             }
@@ -91,7 +104,11 @@ module front(index, connection) {
         data = [0, 90, 180, 270];
         for (i = [0 : 3]) {
             rotate([0, 0, 45 + data[i]]) {
-                plot(connection[i], substract);
+                if (substract && !connection[i]) {
+                    plot(connection[i], substract);
+                } else if (!substract && connection[i]) {
+                    plot(connection[i], substract);
+                }
             }
         }
     }
@@ -109,8 +126,14 @@ module front(index, connection) {
             }
         } else {
             difference() {
-                rotate([0, 0, 45]) {
-                    cylinder(r1 = 5, r2 = size, h = REFLECTOR_HEIGHT, $fn = 4, center = true);
+                union() {
+                    rotate([0, 0, 45]) {
+                        cylinder(r1 = 5, r2 = size, h = REFLECTOR_HEIGHT, $fn = 4, center = true);
+                    }
+
+                    translate([0, 0, -REFLECTOR_HEIGHT + 8.5]) {
+                        cube(size = [13, 13, 5], center = true);
+                    }
                 }
 
                 translate([0, 0, 1.3]) {
@@ -160,7 +183,9 @@ module front(index, connection) {
         for (i = [1 : index]) {
             rotate([0, 0, 45]) {
                 translate([- SIZE / 2 + i * diameter * 2, SIZE / 2 - RIDGE_WIDTH / 2, 0]) {
-                    cylinder(r = diameter / 2, h = 1, center = true, $fn = 3);
+                    cylinder(r = diameter / 2, h = 2, center = true, $fn = 3);
+//                translate([- SIZE / 2 + i * diameter * 2, SIZE / 2 - RIDGE_WIDTH / 2 + 3, 0]) {
+                    //cube(size = [3, 2, 1]);
                 }
             }
         }
@@ -215,12 +240,12 @@ module main(side = -1) {
     offset = 10;
 
     for (data = [
-        [0, [0, 0, -SIZE / 2 - offset], [0, 0, 45], [false, false, false, false]], // Bottom
+        [0, [0, 0, -SIZE / 2 - offset], [0, 0, 45], [true, true, true, true]], // Bottom
         [1, [0, 0, SIZE / 2 + offset], [180, 0, 45], [true, true, true, true]],    // Top
-        [2, [0, SIZE / 2 + offset, 0], [90, 45, 0], [false, false, true, false]],
-        [3, [0, -SIZE / 2 - offset, 0], [-90, 135, 0], [false, false, true, false]],
-        [4, [-SIZE / 2 - offset, 0, 0], [90, 45, 90], [false, true, true, true]],
-        [5, [SIZE / 2 + offset, 0, 0], [90, 45, -90], [false, true, true, true]],
+        [2, [0, SIZE / 2 + offset, 0], [90, 45, 0], [false, true, false, true]],
+        [3, [0, -SIZE / 2 - offset, 0], [-90, 135, 0], [false, true, false, true]],
+        [4, [-SIZE / 2 - offset, 0, 0], [90, 45, 90], [false, false, false, false]],
+        [5, [SIZE / 2 + offset, 0, 0], [90, 45, -90], [false, false, false, false]],
     ]) {
         if (side < 0 || side == data[0]) {
             translate(data[1]) {
@@ -247,16 +272,32 @@ module getside(side) {
     }
 }
 
-if (0) {
+if (1) {
 
-    intersection() {
-        translate([0, SIZE / 2, -SIZE / 2]) {
-            //cube(size = [100, 30, 10], center = true);
-        }
-        main();
-    }
+    main();
 
 } else {
+
     getside(5);
+/*
+    intersection() {
+        translate([0, SIZE / 2, -SIZE / 2]) {
+            cube(size = [100, 30, 20], center = true);
+        }
+
+        rotate([0, 0, 180]) {
+            getside(3);
+        }
+    }
+
+    translate([0, -50, 0]) {
+        intersection() {
+            translate([0, SIZE / 2, -SIZE / 2]) {
+                cube(size = [100, 30, 20], center = true);
+            }
+            getside(1);
+        }
+    }
+*/
 }
 
