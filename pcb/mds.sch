@@ -20238,9 +20238,6 @@ Source: www.kingbright.com</description>
 <packages>
 <package name="BLUETOOTH_SMD">
 <description>HC-05</description>
-<wire x1="-6.35" y1="4.81" x2="-6.35" y2="13.31" width="0.127" layer="21"/>
-<wire x1="-6.35" y1="13.31" x2="6.65" y2="13.31" width="0.127" layer="21"/>
-<wire x1="6.65" y1="13.31" x2="6.65" y2="4.81" width="0.127" layer="21"/>
 <smd name="1" x="-6.35" y="3.81" dx="2" dy="1" layer="1"/>
 <smd name="2" x="-6.35" y="2.31" dx="2" dy="1" layer="1"/>
 <smd name="3" x="-6.35" y="0.81" dx="2" dy="1" layer="1"/>
@@ -20786,9 +20783,9 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <part name="P+24" library="supply1" deviceset="VCC" device=""/>
 <part name="C21" library="rcl" deviceset="C-EU" device="C0805" value="100nf"/>
 <part name="R10" library="rcl" deviceset="R-EU_" device="M0805" value="4.7k"/>
-<part name="LED1" library="led" deviceset="LED" device="CHIP-LED0805"/>
+<part name="LED" library="led" deviceset="LED" device="CHIP-LED0805"/>
 <part name="GND35" library="SparkFun" deviceset="GND" device=""/>
-<part name="U1" library="Bluetooth HC-05" deviceset="HC_05" device="" value="HC_06"/>
+<part name="BLUETOOTH" library="Bluetooth HC-05" deviceset="HC_05" device="" value="HC_0x"/>
 <part name="GND30" library="SparkFun" deviceset="GND" device=""/>
 <part name="GND31" library="SparkFun" deviceset="GND" device=""/>
 <part name="S1" library="SparkFun-Electromechanical" deviceset="SWITCH-SPDT" device="SMD2"/>
@@ -20802,6 +20799,8 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <part name="R13" library="rcl" deviceset="R-EU_" device="M0805" value="??"/>
 <part name="R14" library="rcl" deviceset="R-EU_" device="M0805" value="??"/>
 <part name="GND33" library="SparkFun" deviceset="GND" device=""/>
+<part name="SJ2" library="jumper" deviceset="SJ2W" device=""/>
+<part name="SJ3" library="jumper" deviceset="SJ2W" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -21049,19 +21048,19 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <attribute name="NAME" x="295.656" y="85.979" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="295.656" y="80.899" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="R10" gate="G$1" x="325.12" y="55.88" rot="R90"/>
-<instance part="LED1" gate="G$1" x="325.12" y="45.72"/>
-<instance part="GND35" gate="1" x="325.12" y="35.56"/>
-<instance part="U1" gate="G$1" x="330.2" y="101.6"/>
+<instance part="R10" gate="G$1" x="297.18" y="55.88" rot="R90"/>
+<instance part="LED" gate="G$1" x="297.18" y="45.72"/>
+<instance part="GND35" gate="1" x="297.18" y="35.56"/>
+<instance part="BLUETOOTH" gate="G$1" x="330.2" y="101.6"/>
 <instance part="GND30" gate="1" x="304.8" y="81.28"/>
 <instance part="GND31" gate="1" x="340.36" y="73.66"/>
-<instance part="S1" gate="1" x="350.52" y="50.8" smashed="yes">
-<attribute name="NAME" x="348.615" y="54.61" size="1.778" layer="95"/>
-<attribute name="VALUE" x="347.98" y="54.61" size="1.778" layer="96"/>
+<instance part="S1" gate="1" x="330.2" y="50.8" smashed="yes">
+<attribute name="NAME" x="328.295" y="54.61" size="1.778" layer="95"/>
+<attribute name="VALUE" x="327.66" y="54.61" size="1.778" layer="96"/>
 </instance>
-<instance part="GND27" gate="1" x="358.14" y="43.18"/>
-<instance part="P+25" gate="VCC" x="358.14" y="58.42" smashed="yes">
-<attribute name="VALUE" x="360.68" y="60.96" size="1.778" layer="96" rot="R180"/>
+<instance part="GND27" gate="1" x="337.82" y="43.18"/>
+<instance part="P+25" gate="VCC" x="337.82" y="58.42" smashed="yes">
+<attribute name="VALUE" x="340.36" y="60.96" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="GND32" gate="1" x="358.14" y="81.28"/>
 <instance part="R11" gate="G$1" x="81.28" y="190.5" rot="R90"/>
@@ -21073,6 +21072,8 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <instance part="R13" gate="G$1" x="43.18" y="218.44" rot="R90"/>
 <instance part="R14" gate="G$1" x="43.18" y="203.2" rot="R90"/>
 <instance part="GND33" gate="1" x="43.18" y="193.04"/>
+<instance part="SJ2" gate="G$1" x="320.04" y="50.8" rot="R180"/>
+<instance part="SJ3" gate="G$1" x="358.14" y="50.8" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -21262,29 +21263,29 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <wire x1="297.18" y1="76.2" x2="297.18" y2="78.74" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="LED1" gate="G$1" pin="C"/>
+<pinref part="LED" gate="G$1" pin="C"/>
 <pinref part="GND35" gate="1" pin="GND"/>
-<wire x1="325.12" y1="40.64" x2="325.12" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="297.18" y1="40.64" x2="297.18" y2="38.1" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="GND"/>
+<pinref part="BLUETOOTH" gate="G$1" pin="GND"/>
 <wire x1="307.34" y1="86.36" x2="304.8" y2="86.36" width="0.1524" layer="91"/>
 <wire x1="304.8" y1="86.36" x2="304.8" y2="83.82" width="0.1524" layer="91"/>
 <pinref part="GND30" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="GND1"/>
+<pinref part="BLUETOOTH" gate="G$1" pin="GND1"/>
 <wire x1="340.36" y1="78.74" x2="340.36" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="GND31" gate="1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="S1" gate="1" pin="S"/>
-<wire x1="355.6" y1="48.26" x2="358.14" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="335.28" y1="48.26" x2="337.82" y2="48.26" width="0.1524" layer="91"/>
 <pinref part="GND27" gate="1" pin="GND"/>
-<wire x1="358.14" y1="48.26" x2="358.14" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="337.82" y1="48.26" x2="337.82" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="GND2"/>
+<pinref part="BLUETOOTH" gate="G$1" pin="GND2"/>
 <wire x1="355.6" y1="86.36" x2="358.14" y2="86.36" width="0.1524" layer="91"/>
 <pinref part="GND32" gate="1" pin="GND"/>
 <wire x1="358.14" y1="86.36" x2="358.14" y2="83.82" width="0.1524" layer="91"/>
@@ -21605,7 +21606,7 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <pinref part="P+23" gate="VCC" pin="VCC"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="3V3"/>
+<pinref part="BLUETOOTH" gate="G$1" pin="3V3"/>
 <wire x1="307.34" y1="88.9" x2="297.18" y2="88.9" width="0.1524" layer="91"/>
 <wire x1="297.18" y1="88.9" x2="297.18" y2="91.44" width="0.1524" layer="91"/>
 <pinref part="P+24" gate="VCC" pin="VCC"/>
@@ -21615,9 +21616,9 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 </segment>
 <segment>
 <pinref part="S1" gate="1" pin="O"/>
-<wire x1="355.6" y1="53.34" x2="358.14" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="335.28" y1="53.34" x2="337.82" y2="53.34" width="0.1524" layer="91"/>
 <pinref part="P+25" gate="VCC" pin="VCC"/>
-<wire x1="358.14" y1="53.34" x2="358.14" y2="55.88" width="0.1524" layer="91"/>
+<wire x1="337.82" y1="53.34" x2="337.82" y2="55.88" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R11" gate="G$1" pin="2"/>
@@ -21720,7 +21721,7 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <pinref part="BL" gate="G$1" pin="RXI"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RX"/>
+<pinref part="BLUETOOTH" gate="G$1" pin="RX"/>
 <wire x1="307.34" y1="114.3" x2="304.8" y2="114.3" width="0.1524" layer="91"/>
 <junction x="304.8" y="114.3"/>
 <label x="297.18" y="114.3" size="1.778" layer="95"/>
@@ -21751,7 +21752,7 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <junction x="111.76" y="83.82"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="TX"/>
+<pinref part="BLUETOOTH" gate="G$1" pin="TX"/>
 <wire x1="307.34" y1="116.84" x2="304.8" y2="116.84" width="0.1524" layer="91"/>
 <junction x="304.8" y="116.84"/>
 <label x="297.18" y="116.84" size="1.778" layer="95"/>
@@ -22071,22 +22072,16 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <net name="N$10" class="0">
 <segment>
 <pinref part="R10" gate="G$1" pin="1"/>
-<pinref part="LED1" gate="G$1" pin="A"/>
-<wire x1="325.12" y1="48.26" x2="325.12" y2="50.8" width="0.1524" layer="91"/>
+<pinref part="LED" gate="G$1" pin="A"/>
+<wire x1="297.18" y1="48.26" x2="297.18" y2="50.8" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="LEDB" class="0">
 <segment>
-<pinref part="U1" gate="G$1" pin="PIO1"/>
-<wire x1="355.6" y1="91.44" x2="358.14" y2="91.44" width="0.1524" layer="91"/>
-<junction x="358.14" y="91.44"/>
-<label x="360.68" y="91.44" size="1.778" layer="95"/>
-</segment>
-<segment>
 <pinref part="R10" gate="G$1" pin="2"/>
-<wire x1="325.12" y1="60.96" x2="325.12" y2="63.5" width="0.1524" layer="91"/>
-<junction x="325.12" y="63.5"/>
-<label x="322.58" y="66.04" size="1.778" layer="95"/>
+<wire x1="297.18" y1="60.96" x2="297.18" y2="63.5" width="0.1524" layer="91"/>
+<junction x="297.18" y="63.5"/>
+<label x="294.64" y="66.04" size="1.778" layer="95"/>
 </segment>
 <segment>
 <wire x1="58.42" y1="76.2" x2="60.96" y2="76.2" width="0.1524" layer="91"/>
@@ -22094,19 +22089,25 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <junction x="58.42" y="76.2"/>
 <label x="48.26" y="76.2" size="1.778" layer="95"/>
 </segment>
-</net>
-<net name="KEY" class="0">
 <segment>
-<pinref part="U1" gate="G$1" pin="PIO3"/>
+<pinref part="SJ3" gate="G$1" pin="2"/>
+<wire x1="363.22" y1="50.8" x2="365.76" y2="50.8" width="0.1524" layer="91"/>
+<junction x="365.76" y="50.8"/>
+<label x="368.3" y="50.8" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="HC06_KEY" class="0">
+<segment>
+<pinref part="BLUETOOTH" gate="G$1" pin="PIO3"/>
 <wire x1="355.6" y1="96.52" x2="358.14" y2="96.52" width="0.1524" layer="91"/>
 <junction x="358.14" y="96.52"/>
 <label x="360.68" y="96.52" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="S1" gate="1" pin="P"/>
-<wire x1="347.98" y1="50.8" x2="345.44" y2="50.8" width="0.1524" layer="91"/>
-<junction x="345.44" y="50.8"/>
-<label x="337.82" y="50.8" size="1.778" layer="95"/>
+<pinref part="SJ2" gate="G$1" pin="1"/>
+<wire x1="320.04" y1="45.72" x2="320.04" y2="43.18" width="0.1524" layer="91"/>
+<junction x="320.04" y="43.18"/>
+<label x="314.96" y="38.1" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="AD0" class="0">
@@ -22129,6 +22130,55 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <junction x="83.82" y="182.88"/>
 <junction x="81.28" y="182.88"/>
 <label x="86.36" y="182.88" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$4" class="0">
+<segment>
+<pinref part="S1" gate="1" pin="P"/>
+<pinref part="SJ2" gate="G$1" pin="2"/>
+<wire x1="325.12" y1="50.8" x2="327.66" y2="50.8" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="HC05_KEY" class="0">
+<segment>
+<pinref part="SJ2" gate="G$1" pin="3"/>
+<wire x1="320.04" y1="55.88" x2="320.04" y2="58.42" width="0.1524" layer="91"/>
+<junction x="320.04" y="58.42"/>
+<label x="314.96" y="60.96" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="BLUETOOTH" gate="G$1" pin="PIO11"/>
+<wire x1="355.6" y1="116.84" x2="358.14" y2="116.84" width="0.1524" layer="91"/>
+<junction x="358.14" y="116.84"/>
+<label x="360.68" y="116.84" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="HC05_LED" class="0">
+<segment>
+<pinref part="BLUETOOTH" gate="G$1" pin="PIO9"/>
+<wire x1="355.6" y1="111.76" x2="358.14" y2="111.76" width="0.1524" layer="91"/>
+<junction x="358.14" y="111.76"/>
+<label x="360.68" y="111.76" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="SJ3" gate="G$1" pin="3"/>
+<wire x1="358.14" y1="55.88" x2="358.14" y2="58.42" width="0.1524" layer="91"/>
+<junction x="358.14" y="58.42"/>
+<label x="353.06" y="60.96" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="HC06_LED" class="0">
+<segment>
+<pinref part="SJ3" gate="G$1" pin="1"/>
+<wire x1="358.14" y1="45.72" x2="358.14" y2="43.18" width="0.1524" layer="91"/>
+<junction x="358.14" y="43.18"/>
+<label x="353.06" y="38.1" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="BLUETOOTH" gate="G$1" pin="PIO1"/>
+<wire x1="355.6" y1="91.44" x2="358.14" y2="91.44" width="0.1524" layer="91"/>
+<junction x="358.14" y="91.44"/>
+<label x="360.68" y="91.44" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>

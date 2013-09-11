@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -91,9 +91,6 @@
 <packages>
 <package name="BLUETOOTH_SMD">
 <description>HC-05</description>
-<wire x1="-6.35" y1="4.81" x2="-6.35" y2="13.31" width="0.127" layer="21"/>
-<wire x1="-6.35" y1="13.31" x2="6.65" y2="13.31" width="0.127" layer="21"/>
-<wire x1="6.65" y1="13.31" x2="6.65" y2="4.81" width="0.127" layer="21"/>
 <smd name="1" x="-6.35" y="3.81" dx="2" dy="1" layer="1"/>
 <smd name="2" x="-6.35" y="2.31" dx="2" dy="1" layer="1"/>
 <smd name="3" x="-6.35" y="0.81" dx="2" dy="1" layer="1"/>

@@ -10,12 +10,12 @@ THICKNESS = 3;
 
 HOLE_DIAMETER = 2 + .5;
 
-ELEC_WIDTH = 40;
-ELEC_LENGTH = 42.3;
+ELEC_WIDTH = 42.3;
+ELEC_LENGTH = 40;
 ELEC_THICKNESS = 0.8;
 
-ELEC_SUPPORT_WIDTH = 35;
-ELEC_SUPPORT_LENGTH = 37;
+ELEC_SUPPORT_WIDTH = 37;
+ELEC_SUPPORT_LENGTH = 35;
 ELEC_HOLE_DIAMETER = 3;
 
 GY27_WIDTH = 15.55;
@@ -25,6 +25,8 @@ GY27_HEIGHT = 3.8;
 GY27_HOLE_DIAMETER = 3;
 
 REFLECTOR_HEIGHT = 12;
+
+DEBUG = false;
 
 module gy27() {
     difference() {
@@ -40,19 +42,225 @@ module gy27() {
     }
 }
 
-module electronic() {
-    difference() {
-        cube(size = [ELEC_WIDTH, ELEC_LENGTH, ELEC_THICKNESS], center = true);
+module electronic(version = 1, diff = false) {
+    module bluetooth() {
+        width = 10;
+        length = 15;
+        translate([-ELEC_WIDTH / 2, -ELEC_LENGTH / 2 + 16 / 2 - 0.5, 0]) {
+            cube(size = [width, length, ELEC_THICKNESS], center = true);
+        }
+    }
 
+    module holes() {
         for(pos = [
-            [ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2, -5],
-            [-ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2, -5],
-            [ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2, -5],
-            [-ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2, -5],
+            [ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2, -5, 2],
+            [-ELEC_SUPPORT_WIDTH / 2, ELEC_SUPPORT_LENGTH / 2, -5, 2],
+            [ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2, -5, 2],
+            [-ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2, -5, 1],
+        ]) {
+            if (pos[3] >= version) {
+                translate([pos[0], pos[1], -25]) {
+                    cylinder(r = ELEC_HOLE_DIAMETER / 2, h = 50);
+                }
+
+                translate([pos[0], pos[1], 0]) {
+                    child(0);
+                }
+            }
+        }
+    }
+
+    module body() {
+        cube(size = [ELEC_WIDTH, ELEC_LENGTH, ELEC_THICKNESS], center = true);
+        if (version == 2) {
+            bluetooth();
+        }
+    }
+
+    if (diff) {
+        body(13);
+        holes() {
+            child(0);
+        };
+    } else {
+        difference() {
+            body();
+            holes();
+        }
+    }
+}
+
+LIPO_WIDTH = 40;
+LIPO_LENGTH = 65;
+LIPO_THICKNESS = 7;
+
+module lipo() {
+    cube(size = [LIPO_LENGTH, LIPO_WIDTH, LIPO_THICKNESS], center = true);
+}
+
+SPEAKER_DIAMETER = 28.5;
+module speaker() {
+    thickness = 5;
+    clear = 0.5;
+
+    module holes() {
+        for (pos = [
+            [31.7 / 2, 0, 0],
+            [-31.7 / 2, 0, 0],
         ]) {
             translate(pos) {
-                cylinder(r = ELEC_HOLE_DIAMETER / 2, h = 10);
+                child(0);
             }
+        }
+    }
+
+    hull() {
+        cylinder(r = SPEAKER_DIAMETER / 2, h = thickness, center = true);
+        holes() {
+            cylinder(r = 3.5, h = thickness, center = true);
+        }
+    }
+
+    holes() {
+        child(0);
+    }
+}
+
+module vibrator() {
+    translate([29, -25, 0]) {
+        cylinder(r = 1.5, h = 10, center = true);
+        translate([0, 12, 0]) {
+            cylinder(r = 1.5, h = 10, center = true);
+        }
+
+        hull() {
+            translate([0, 0, -2]) {
+                cylinder(r = 3.5, h = 5, center = true);
+            }
+
+            translate([0, 12, -2]) {
+                cylinder(r = 3.5, h = 5, center = true);
+            }
+        }
+    }
+}
+
+module struct() {
+
+    thickness = 4;
+    height = SIZE - RIDGE_WIDTH * 2;
+    size = sqrt(pow(height, 2) + pow(height, 2));
+    ear = 20;
+
+    lipo_support_thickness = 3;
+
+    module lipo_support() {
+        translate([0, -LIPO_WIDTH / 2 - lipo_support_thickness / 2 + 2, - thickness / 2 - LIPO_THICKNESS / 2]) {
+            cube(size = [LIPO_LENGTH + thickness, lipo_support_thickness + thickness, LIPO_THICKNESS + thickness], center = true);
+        }
+    }
+
+    module _speaker() {
+        translate([25, 5, 6]) {
+            cylinder(r = SPEAKER_DIAMETER / 2, h = 50, center = true);
+            rotate([0, 0, 45]) {
+                color("ORANGE") speaker() {
+                    child(0);
+                }
+            }
+
+            /*
+            translate([8, SPEAKER_DIAMETER / 2 + 5, 0]) {
+                cylinder(r = 3, h = 50, center = true);
+            }
+            */
+        }
+    }
+
+    rotate([90, 0, 45]) {
+        difference() {
+
+            union() {
+                // Helper
+                //%cube(size = [size, height, 1], center = true);
+
+                cube(size = [size, height - REFLECTOR_HEIGHT - 2, thickness], center = true);
+                for (pos = [
+                    [size / 2 - ear / 2, height / 2 - ear / 2, 0],
+                    [-size / 2 + ear / 2, height / 2 - ear / 2, 0],
+                    [size / 2 - ear / 2, -height / 2 + ear / 2, 0],
+                    [-size / 2 + ear / 2, -height / 2 + ear / 2, 0]
+                ]) {
+                    translate(pos) {
+                        cube(size = [ear, ear, thickness], center = true);
+                    }
+                }
+
+                if (DEBUG) {
+                    translate([-12, 0, thickness]) {
+                        color("GREEN") electronic(2);
+                    }
+                }
+
+                if (DEBUG) {
+                    translate([0, 0, - thickness / 2 - LIPO_THICKNESS / 2]) {
+                        //%color("GREY") lipo();
+                    }
+                }
+
+                lipo_support();
+
+                if (DEBUG) {
+                    rotate([90, 45, 0]) {
+                        translate([-22, 10, height / 2]) {
+                            color("BLUE") gy27();
+                        }
+                    }
+                }
+
+                //_speaker();
+            }
+
+
+            for (pos = [
+                [0, SIZE / 2 - RIDGE_WIDTH / 2, 0, 45, 90],
+                [0, - SIZE / 2 + RIDGE_WIDTH / 2, 0, -45, 90],
+                [0, SIZE / 2 - RIDGE_WIDTH / 2, 0, -45, 90],
+                [0, - SIZE / 2 + RIDGE_WIDTH / 2, 0, 45, 90]
+            ]) {
+                rotate([pos[3], 0, pos[4]]) {
+                    translate([pos[0], pos[1], pos[2]]) {
+                        cube(size = [SIZE, RIDGE_WIDTH, SIZE], center = true);
+                    }
+                }
+            }
+
+            translate([-12, 0, thickness]) {
+                electronic(2, true) {
+                    union() {
+                        translate([0, 0, -7]) {
+                            cylinder(r = 3.5, h = 5, center = true);
+                        }
+                    }
+                }
+            }
+
+            translate([0, 0, - thickness / 2 - LIPO_THICKNESS / 2 - .005]) {
+                lipo();
+            }
+
+            translate([0, 0, -3]) {
+                _speaker() {
+                    union() {
+                        cylinder(r = 1.5, h = 50, center = true);
+                        translate([0, 0, -6]) {
+                            cylinder(r = 3.5, h = 5, center = true);
+                        }
+                    }
+                }
+            }
+
+            vibrator();
         }
     }
 }
@@ -75,8 +283,8 @@ module front(index, connection) {
             scale([clear, clear, clear_height]) {
                 translate([0, -4, 0.5]) {
                     linear_extrude(height = height, center = true) {
-                        //polygon([[-5,0],[-3,0],[-3,-1],[3,-1],[3,0],[5,0],[5,3],[0,5],[-5,3]]);                
-                        polygon([[0,1],[5,4],[0,7],[-5,4]]);                
+                        //polygon([[-5,0],[-3,0],[-3,-1],[3,-1],[3,0],[5,0],[5,3],[0,5],[-5,3]]);
+                        polygon([[0,1],[5,4],[0,7],[-5,4]]);
                     }
                 }
             }
@@ -235,9 +443,7 @@ module front(index, connection) {
     }
 }
 
-module main(side = -1) {
-
-    offset = 10;
+module main(side = -1, offset = 10) {
 
     for (data = [
         [0, [0, 0, -SIZE / 2 - offset], [0, 0, 45], [true, true, true, true]], // Bottom
@@ -268,17 +474,27 @@ module getside(side) {
     ];
 
     rotate(data[side]) {
-        main(side);
+        main(side, offset = 0);
     }
 }
 
-if (1) {
+module getsides(sides, offset = 10) {
+    for (side = sides) {
+        main(side, offset);
+    }
+}
+
+if (0) {
 
     main();
 
 } else {
 
-    getside(5);
+    //getside(0);
+    //getsides([0, 2, 4], 0);
+
+    struct();
+
 /*
     intersection() {
         translate([0, SIZE / 2, -SIZE / 2]) {
