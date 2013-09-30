@@ -1,5 +1,6 @@
 
 use <lib/Spiff.scad>;
+use <lib/mx.scad>;
 
 $fn = 20;
 
@@ -26,17 +27,36 @@ GY27_HOLE_DIAMETER = 3;
 
 REFLECTOR_HEIGHT = 12;
 
-DEBUG = false;
+DEBUG = true;
 
-module gy27() {
-    difference() {
-        cube(size = [GY27_WIDTH, GY27_LENGTH, GY27_THICKNESS], center = true);
-        for (pos = [
-            [GY27_WIDTH / 2 - 2, GY27_LENGTH / 2 - 3, 0],
-            [-GY27_WIDTH / 2 + 2, GY27_LENGTH / 2 - 3, 0],
-        ]) {
-            translate(pos) {
-                cylinder(r = GY27_HOLE_DIAMETER / 2, h = 10, center = true);
+module gy27(support = false) {
+    positions = [
+        [GY27_WIDTH / 2 - 2, GY27_LENGTH / 2 - 3, 0],
+        [-GY27_WIDTH / 2 + 2, GY27_LENGTH / 2 - 3, 0],
+    ];
+
+    if (support) {
+        for (pos = positions) {
+            translate([pos[0], pos[1], pos[2] - 0.25]) {
+                cylinder(r = GY27_HOLE_DIAMETER / 2 + 0.7, h = 0.5, center = true);
+                translate([0, 0, 2]) {
+                    cylinder(r = GY27_HOLE_DIAMETER / 2 - 0.2, h = 5, center = true);
+                }
+            }
+        }
+    } else {
+        difference() {
+            cube(size = [GY27_WIDTH, GY27_LENGTH, GY27_THICKNESS], center = true);
+            for (pos = positions) {
+                translate(pos) {
+                    cylinder(r = GY27_HOLE_DIAMETER / 2, h = 10, center = true);
+
+                    if ($children) {
+                        for (i = [0 : $children - 1]) {
+                            child(0);
+                        }
+                    }
+                }
             }
         }
     }
@@ -59,12 +79,14 @@ module electronic(version = 1, diff = false) {
             [-ELEC_SUPPORT_WIDTH / 2, -ELEC_SUPPORT_LENGTH / 2, -5, 1],
         ]) {
             if (pos[3] >= version) {
-                translate([pos[0], pos[1], -25]) {
-                    cylinder(r = ELEC_HOLE_DIAMETER / 2, h = 50);
+                translate([pos[0], pos[1], -10]) {
+                    cylinder(r = ELEC_HOLE_DIAMETER / 2, h = 10);
                 }
 
-                translate([pos[0], pos[1], 0]) {
-                    child(0);
+                if ($children) {
+                    translate([pos[0], pos[1], 0]) {
+                        child(0);
+                    }
                 }
             }
         }
@@ -78,9 +100,11 @@ module electronic(version = 1, diff = false) {
     }
 
     if (diff) {
-        body(13);
+        //body();
         holes() {
-            child(0);
+            if ($children) {
+                child(0);
+            }
         };
     } else {
         difference() {
@@ -177,6 +201,15 @@ module struct() {
         }
     }
 
+/*
+    module _gy27(support = false) {
+        rotate([90, 45, 0]) {
+            translate([21, -12, height / 2]) {
+                gy27(support);
+            }
+        }
+    }
+*/
     rotate([90, 0, 45]) {
         difference() {
 
@@ -198,7 +231,7 @@ module struct() {
 
                 if (DEBUG) {
                     translate([-12, 0, thickness]) {
-                        color("GREEN") electronic(2);
+                        color("RED") electronic(2);
                     }
                 }
 
@@ -210,17 +243,8 @@ module struct() {
 
                 lipo_support();
 
-                if (DEBUG) {
-                    rotate([90, 45, 0]) {
-                        translate([-22, 10, height / 2]) {
-                            color("BLUE") gy27();
-                        }
-                    }
-                }
-
                 //_speaker();
             }
-
 
             for (pos = [
                 [0, SIZE / 2 - RIDGE_WIDTH / 2, 0, 45, 90],
@@ -238,8 +262,8 @@ module struct() {
             translate([-12, 0, thickness]) {
                 electronic(2, true) {
                     union() {
-                        translate([0, 0, -7]) {
-                            cylinder(r = 3.5, h = 5, center = true);
+                        translate([0, 0, -4.9]) {
+                            m3_nut();
                         }
                     }
                 }
@@ -253,8 +277,9 @@ module struct() {
                 _speaker() {
                     union() {
                         cylinder(r = 1.5, h = 50, center = true);
-                        translate([0, 0, -6]) {
-                            cylinder(r = 3.5, h = 5, center = true);
+                        translate([0, 0, -4.9]) {
+                            m3_nut();
+                            //cylinder(r = 3.5, h = 5, center = true);
                         }
                     }
                 }
@@ -441,6 +466,79 @@ module front(index, connection) {
             mark(index);
         }
     }
+
+    if (index == 0) {
+        translate([7, 23.5, 8.5]) {
+            rotate([0, 0, -135]) {
+                if (DEBUG) {
+                    translate([0, 0, 0.8]) {
+                        color("BLUE") gy27();
+                    }
+                }
+
+                gy27(true);
+            }
+        }
+    }
+}
+
+module face(type = 0, text = "", text_rot = [0, 0, 0], text_pos = [0, 0, 0]) {
+    nut_head_diameter = 4.6; // Before : 4: serré, 5: too large
+    nut_head_height = 1.3;
+    thickness = 2;
+    text_deep = 1;
+    difference() {
+        translate([0, 0, SIZE / 2 + thickness / 2]) {
+            // Biggest type
+            if (type == 0) {
+                cube(size = [SIZE + thickness * 2, SIZE + thickness * 2, 2], center = true);
+            // Medium type
+            } else if (type == 1) {
+                cube(size = [SIZE, SIZE + thickness * 2, 2], center = true);
+            // Smallest type
+            } else if (type == 2) {
+                cube(size = [SIZE, SIZE, 2], center = true);
+            }
+        }
+
+/*
+        translate([0, 0, SIZE / 2 - nut_head_height + thickness]) {
+            holes() {
+                cylinder(r = nut_head_diameter / 2, h = 2);
+            }
+        }
+*/
+        translate([-10, -15, SIZE / 2 + thickness - text_deep]) {
+            scale([3.5, 3.5, 1]) {
+                rotate(text_rot) {
+                    translate(text_pos) {
+                        linear_extrude(height = 20) {
+                            write(text);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+module faces(which = -1, offset = 30) {
+    for (data = [
+        [[0, 0, offset],    [0, 0, 0],      0, "1", [0, 0, 90], [1.5, -7.5, 0]],
+        [[0, 0, -offset],   [180, 0, 0],    0, "0"],
+        [[offset, 0, 0],    [0, 90, 0],     1, "5", [0, 0, 90], [1.5, -7.5, 0]],
+        [[-offset, 0, 0],   [0, -90, 0],    1, "4", [0, 0, -90], [-7, -2, 0]],
+        [[0, -offset, 0],   [90, 0, 0],     2, "3"],
+        [[0, offset, 0],    [-90, 0, 0],    2, "2", [0, 0, 180], [-6, -9, 0]]
+    ]) {
+        if (which == -1 || which == data[3]) {
+            translate(data[0]) {
+                rotate(data[1]) {
+                    %face(data[2], data[3], data[4], data[5]);
+                }
+            }
+        }
+    }
 }
 
 module main(side = -1, offset = 10) {
@@ -484,14 +582,17 @@ module getsides(sides, offset = 10) {
     }
 }
 
-if (0) {
+if (1) {
 
-    main();
+    //main();
+    main(-1, 0);
+
+    faces(-1, 5);
 
 } else {
 
     //getside(0);
-    //getsides([0, 2, 4], 0);
+    getsides([0, 2, 4], 0);
 
     struct();
 
