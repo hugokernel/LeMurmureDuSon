@@ -27,7 +27,27 @@ GY27_HOLE_DIAMETER = 3;
 
 REFLECTOR_HEIGHT = 12;
 
-DEBUG = true;
+DEBUG = false;
+
+module coil() {
+    ediameter = 39;
+    idiameter = 29.1;
+    difference() {
+        cylinder(r = ediameter / 2, h = 1.7);
+
+        translate([0, 0, -2]) {
+            cylinder(r = idiameter / 2, h = 10);
+        }
+    }
+
+    translate([(ediameter - (ediameter - idiameter) / 2) / 2, 0, 0]) {
+        cylinder(r = 2, h = 12);
+    }
+}
+
+module charger() {
+    cube(size = [9.9, 24.5, 4], center = true);
+}
 
 module gy27(support = false) {
     positions = [
@@ -199,6 +219,10 @@ module struct() {
             }
             */
         }
+
+        translate([37, -SPEAKER_DIAMETER / 2 + 10, 0]) {
+            cylinder(r = 3, h = 50, center = true);
+        }
     }
 
 /*
@@ -292,6 +316,16 @@ module struct() {
 
 module front(index, connection) {
     edge_size = SIZE / 2 * sqrt(2);
+
+    module _charger() {
+        rotate([0, 0, -45]) {
+            translate([22, 0, 7.8]) {
+                scale([1.1, 1.1, 1]) {
+                    charger();
+                }
+            }
+        }
+    }
 
     module plot(add, substract = true) {
         width = 4;
@@ -449,6 +483,12 @@ module front(index, connection) {
 
         blocker(connection, true);
 
+        if (index == 0) {
+            coil();
+
+            _charger();
+        }
+
         // Top holes
         if (index == 1) {
             holes_top();
@@ -477,6 +517,14 @@ module front(index, connection) {
                 }
 
                 gy27(true);
+            }
+        }
+
+        if (DEBUG) {
+            color("blue") {
+                coil();
+
+                _charger();
             }
         }
     }
@@ -582,7 +630,7 @@ module getsides(sides, offset = 10) {
     }
 }
 
-if (1) {
+if (0) {
 
     //main();
     main(-1, 0);
@@ -591,10 +639,12 @@ if (1) {
 
 } else {
 
-    //getside(0);
-    getsides([0, 2, 4], 0);
-
-    struct();
+    if (1) {
+        getside(1);
+    } else {
+        getsides([0, 2, 4], 0);
+        struct();
+    }
 
 /*
     intersection() {

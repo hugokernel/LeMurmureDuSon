@@ -45,6 +45,14 @@ void setup()
 
     mds.init();
 
+    /*
+    while (1) {
+        mds.vibrate(1000);
+        delay(3500);
+    }
+    */
+
+
 /*
     delay(2000);
     Serial.print("Record...");

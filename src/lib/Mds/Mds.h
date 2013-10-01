@@ -8,14 +8,18 @@
 #include "HL1606strip.h"
 #include <EEPROM.h>
 
+//#define VERSION_06
+#define VERSION_08
+
 #define UP(x)   digitalWrite(x, HIGH)
 #define DOWN(x) digitalWrite(x, LOW)
 #define READ(x) digitalRead(x)
 
+#ifdef VERSION_06
 #define VIBRATOR A1     // PC1
+#endif
 
-#define CHG 3
-
+#ifdef VERSION_06
 #define M1 A2
 #define M2 A3
 #define M3 20 // PB6
@@ -24,6 +28,18 @@
 #define M6 7
 #define M7 6
 #define M8 5
+#else
+#define M1 A2
+#define M2 A3
+#define M3 A0
+#define M4 A1
+#define M5 4
+#define M6 7
+#define M7 6
+#define M8 5
+#endif
+
+#define CHG 3
 
 #define REC_PLAY 8
 #define LED 2

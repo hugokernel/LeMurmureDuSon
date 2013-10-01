@@ -60,9 +60,6 @@ void Mds::init(void) {
 
     loadConfig();
 
-    DDRB |= (1 << DDB6) | (1 << DDB7);
-
-    pinMode(VIBRATOR, OUTPUT);
     pinMode(CHG, INPUT);
 
     // Set output
@@ -73,14 +70,21 @@ void Mds::init(void) {
     pinMode(REC_PLAY, OUTPUT);
     pinMode(LED, INPUT);
 
-    DOWN(VIBRATOR);
-
     msgUnselect();
 
     UP(REC_PLAY);
 
     accel.powerOn();
     compass = HMC5883L();
+
+#ifdef VERSION_08
+    DDRB |= (1 << DDB6);    // OUTPUT
+    DDRB &= ~(1 << DDB7);   // INPUT
+    PORTB &= ~(1 << PORTB6);
+#else
+    pinMode(VIBRATOR, OUTPUT);
+    DOWN(VIBRATOR);
+#endif
 
     event = event_t();
 
@@ -171,6 +175,7 @@ bool Mds::record(uint8_t index) {
 }
 
 void Mds::msgDown(uint8_t value) {
+#ifdef VERSION_06
     if (value == M3) {
         PORTB &= ~(1 << PORTB6);
     } else if (value == M4) {
@@ -178,9 +183,13 @@ void Mds::msgDown(uint8_t value) {
     } else {
         DOWN(value);
     }
+#else
+    DOWN(value);
+#endif
 }
 
 void Mds::msgUp(uint8_t value) {
+#ifdef VERSION_06
     if (value == M3) {
         PORTB |= (1 << PORTB6);
     } else if (value == M4) {
@@ -188,6 +197,9 @@ void Mds::msgUp(uint8_t value) {
     } else {
         UP(value);
     }
+#else
+    UP(value);
+#endif
 }
 
 bool Mds::play(uint8_t index) {
@@ -228,9 +240,15 @@ bool Mds::stop() {
 }
 
 void Mds::vibrate(int time) {
+#ifdef VERSION_08
+    PORTB |= (1 << PORTB6);
+    delay(time);
+    PORTB &= ~(1 << PORTB6);
+#else
     UP(VIBRATOR);
     delay(time);
     DOWN(VIBRATOR);
+#endif
 }
 
 void Mds::ledsOff() {
