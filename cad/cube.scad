@@ -640,7 +640,7 @@ if (0) {
 } else {
 
     if (1) {
-        getside(1);
+        getside(5);
     } else {
         getsides([0, 2, 4], 0);
         struct();
