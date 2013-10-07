@@ -17,6 +17,7 @@ uint8_t Colors[6] = {
 
 extern uint8_t Leds[6];
 
+void cmd_led();
 void cmd_play();
 void cmd_record();
 void unrecognized(const char *);
@@ -37,6 +38,7 @@ void setup()
 
     delay(1500);
     sCmd.setDefaultHandler(unrecognized);
+    sCmd.addCommand("led",      cmd_led);
     sCmd.addCommand("play",     cmd_play);
     sCmd.addCommand("record",   cmd_record);
     sCmd.addCommand("stop",     cmd_stop);
@@ -147,6 +149,9 @@ double result = 0;
 void loop() {
 
     //static bool chargingHandled = false;
+
+    //mds.accel.printAllRegister();
+    //while(1);
 
     while (!tick) {
         sCmd.readSerial();
@@ -378,6 +383,34 @@ Serial.print("shaked");
     absValue = getHigher(mds.xyz, index, sign);
 */
 
+void cmd_led() {
+    char *arg;
+    unsigned int index, color = 0;
+
+    arg = sCmd.next();
+    index = atoi(arg);
+    if (index < 0 || index >= sizeof(Leds)) {
+        PLN("Index range : 0...7");
+    } else {
+        P("Set led ");
+        P(index);
+
+        arg = sCmd.next();
+        color = atoi(arg);
+        if (index < 0 || index >= sizeof(Colors)) {
+            PLN("Color range : 0...7");
+        }
+
+        P(" to color ");
+        P(color);
+
+        //mds.ledsOff();
+        mds.ledOn(Leds[index], Colors[color]);
+
+        PLN("");
+    }
+}
+
 void cmd_play() {
     char *arg;
     unsigned int index = 0;
@@ -390,6 +423,9 @@ void cmd_play() {
         P("Play ");
         P(index);
 
+        mds.ledsOff();
+        //mds.ledOn(Leds[index], GREEN);
+        mds.ledsColor(GREEN);
         mds.play(index);
         //delay(6000);
         //mds.stop();
@@ -527,6 +563,15 @@ void cmd_sensor() {
         P(data[1]);
         P(", z:");
         PLN(data[2]);
+
+        P("Battery voltage : ");
+        PLN(mds.getBatteryVoltage());
+
+        P("Charger voltage : ");
+        PLN(mds.getChargerVoltage());
+
+        P("Temperature : ");
+        PLN(mds.getTemperature());
 
         delay(1000);
     }

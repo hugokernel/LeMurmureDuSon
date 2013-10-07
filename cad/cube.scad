@@ -51,8 +51,8 @@ module charger() {
 
 module gy27(support = false) {
     positions = [
-        [GY27_WIDTH / 2 - 2, GY27_LENGTH / 2 - 3, 0],
-        [-GY27_WIDTH / 2 + 2, GY27_LENGTH / 2 - 3, 0],
+        [GY27_WIDTH / 2 - 2.5, GY27_LENGTH / 2 - 3, 0],
+        [-GY27_WIDTH / 2 + 2.5, GY27_LENGTH / 2 - 3, 0],
     ];
 
     if (support) {
@@ -189,7 +189,7 @@ module vibrator() {
     }
 }
 
-module struct() {
+module support() {
 
     thickness = 4;
     height = SIZE - RIDGE_WIDTH * 2;
@@ -490,7 +490,7 @@ module front(index, connection) {
         }
 
         // Top holes
-        if (index == 1) {
+        if (index == 0 || index == 1) {
             holes_top();
         }
 
@@ -639,11 +639,11 @@ if (0) {
 
 } else {
 
-    if (1) {
-        getside(5);
+    if (0) {
+        getside(0);
     } else {
-        getsides([0, 2, 4], 0);
-        struct();
+        //getsides([0, 2, 4], 0);
+        support();
     }
 
 /*

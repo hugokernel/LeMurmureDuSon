@@ -91,6 +91,8 @@ void Mds::init(void) {
     attachInterrupt(0, interruptLed, FALLING);
     //attachInterrupt(1, interruptChg, FALLING);
 
+    analogReference(INTERNAL);
+
  /*
     //accel.setRangeSetting(2);
 
@@ -154,6 +156,24 @@ bool Mds::isRecording() {
 
 bool Mds::isBusy() {
     return Mds::_isBusy;
+}
+
+float Mds::getBatteryVoltage() {
+    int ad0 = analogRead(AD0);
+    return ad0 * VBAT_LSB / VBAT_RATIO;
+    // 1024 * 0.0041015625 / 0.2444444
+}
+
+float Mds::getChargerVoltage() {
+    int ad1 = analogRead(AD1);
+    return ad1 * VCHG_LSB / VCHG_RATIO;
+}
+
+float Mds::getTemperature() {
+    int temp = analogRead(TEMP);
+    // From http://playground.arduino.cc/Main/InternalTemperatureSensor
+    float t = (temp - 324.31) / 1.22;
+    return temp;
 }
 
 bool Mds::isCharging() {

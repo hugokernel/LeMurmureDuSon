@@ -20792,12 +20792,12 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <part name="GND27" library="SparkFun" deviceset="GND" device=""/>
 <part name="P+25" library="supply1" deviceset="VCC" device=""/>
 <part name="GND32" library="SparkFun" deviceset="GND" device=""/>
-<part name="R11" library="rcl" deviceset="R-EU_" device="M0805" value="??"/>
-<part name="R12" library="rcl" deviceset="R-EU_" device="M0805" value="??"/>
+<part name="R11" library="rcl" deviceset="R-EU_" device="M0805" value="6.8k 1%"/>
+<part name="R12" library="rcl" deviceset="R-EU_" device="M0805" value="2.2k 1%"/>
 <part name="GND14" library="SparkFun" deviceset="GND" device=""/>
 <part name="P+27" library="supply1" deviceset="VCC" device=""/>
-<part name="R13" library="rcl" deviceset="R-EU_" device="M0805" value="??"/>
-<part name="R14" library="rcl" deviceset="R-EU_" device="M0805" value="??"/>
+<part name="R13" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
+<part name="R14" library="rcl" deviceset="R-EU_" device="M0805" value="1k5"/>
 <part name="GND33" library="SparkFun" deviceset="GND" device=""/>
 <part name="SJ2" library="jumper" deviceset="SJ2W" device=""/>
 <part name="SJ3" library="jumper" deviceset="SJ2W" device=""/>
@@ -20820,6 +20820,17 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 <text x="347.98" y="20.32" size="2.54" layer="94">Charles Rincheval</text>
 <wire x1="279.4" y1="154.94" x2="279.4" y2="5.08" width="0.1524" layer="98" style="shortdash"/>
 <text x="287.02" y="142.24" size="6.4516" layer="98">Bluetooth</text>
+<text x="35.56" y="177.8" size="1.778" layer="98">LIPO Max : 4.5V</text>
+<text x="10.16" y="231.14" size="1.778" layer="98">PWR Max : 7V</text>
+<wire x1="40.64" y1="213.36" x2="35.56" y2="218.44" width="0.1524" layer="98"/>
+<wire x1="35.56" y1="218.44" x2="35.56" y2="231.14" width="0.1524" layer="98"/>
+<wire x1="35.56" y1="231.14" x2="48.26" y2="243.84" width="0.1524" layer="98"/>
+<text x="48.26" y="246.38" size="1.778" layer="98">R13 &amp; R14 value calculated for
+AD1 ~ 1.1V when PWR = 7V</text>
+<text x="96.52" y="190.5" size="1.778" layer="98">R11 &amp; R12 calculated for AD0 = 1.1V
+when LIPO = 4.5V</text>
+<wire x1="93.98" y1="193.04" x2="91.44" y2="193.04" width="0.1524" layer="98"/>
+<wire x1="91.44" y1="193.04" x2="86.36" y2="187.96" width="0.1524" layer="98"/>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0" smashed="yes">
@@ -22186,4 +22197,10 @@ DPDT SMT slide switch, AYZ0202, SWCH-08179</description>
 </sheets>
 </schematic>
 </drawing>
+<compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
+</compatibility>
 </eagle>

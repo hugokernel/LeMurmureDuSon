@@ -50,6 +50,25 @@
 
 #define DEBUG
 
+// Analog input
+#define AD0     6   // Battery
+#define AD1     7   // Charger
+#define TEMP    8   // Avr internal temperature sensor
+
+// Battery voltage
+#define R11         6800
+#define R12         2200
+#define VBAT_MAX    1.2
+#define VBAT_LSB    (float)VBAT_MAX / 1024
+#define VBAT_RATIO  (float)R12 / (R11 + R12)
+
+// Charger voltage
+#define R13         10000
+#define R14         1500
+#define VCHG_MAX    7
+#define VCHG_LSB    (float)VCHG_MAX / 1024
+#define VCHG_RATIO  (float)R14 / (R13 + R14)
+
 typedef enum Sides {
     SIDE_UNKNOW = -1,
     SIDE_0 = 0,
@@ -177,6 +196,10 @@ public:
     bool isBusy();
 
     bool isCharging();
+
+    float getBatteryVoltage();
+    float getChargerVoltage();
+    float getTemperature();
 
     bool record(uint8_t);
     bool play(uint8_t);
