@@ -29,36 +29,14 @@ module holes() {
 }
 
 module bump(index, size = SIZE, thick = THICKNESS) {
-    stl_width = 473;
+    //stl_width = 473;
     stl_width = 300;
     stl_thickness = 10;
     //coeff = stl_width / size;
     thickness = 1;
 
-    //size_map = [ 0, 0, 2, 2, 1, 1 ];
-    size_map = [
-        [ size, size ],
-        [ size, size ],
-        [ size, size ],
-        [ size, size ],
-        [ size, size ],
-        [ size, size ],
-
-        // Type 0
-        [ size + thickness * 2, size + thickness * 2 ],
-        [ size + thickness * 2, size + thickness * 2 ],
-
-        // Type 2
-        [ size, size + thickness * 2 ],
-        [ size, size + thickness * 2 ],
-
-        // Type 1
-        [ size, size ],
-        [ size, size ]
-    ];
-
-    coeff_w = stl_width / size_map[index][0];
-    coeff_l = stl_width / size_map[index][1];
+    coeff_w = stl_width / size;
+    coeff_l = stl_width / size;
     coeff_t = stl_thickness / thick;
 
     translate([stl_width / coeff_w / 2, stl_width / coeff_l / 2, thickness / 2]) {
@@ -99,8 +77,14 @@ module bump(index, size = SIZE, thick = THICKNESS) {
     }
             */
 
-    translate([0, 0, thickness / 2 - 0.5]) {
-        cube(size = [size_map[index][0], size_map[index][1], 1], center = true);
+    if (index == 5) {
+        translate([0, 0, thickness / 2 - 0.4]) {
+            cube(size = [size, size, 0.2], center = true);
+        }
+    } else {
+        translate([0, 0, thickness / 2 - 0.5]) {
+            cube(size = [size, size, 1], center = true);
+        }
     }
 }
 
@@ -117,10 +101,10 @@ module faces(which = -1, offset = 30) {
         for (data = [
             [ 0, [0, 0, -offset],   [180, 0, 0], "RED" ],
             [ 1, [0, 0, offset],    [0, 0, 0]   ],
-            //[ 2, [offset, 0, 0],    [0, 90, 0], "BLUE" ],
-            //[ 3, [-offset, 0, 0],   [0, -90, 0] ],
-            //[ 4, [0, -offset, 0],   [90, 0, 0]  ],
-            //[ 5, [0, offset, 0],    [-90, 0, 0] ]
+            [ 2, [offset, 0, 0],    [0, 90, 0], "BLUE" ],
+            [ 3, [-offset, 0, 0],   [0, -90, 0] ],
+            [ 4, [0, -offset, 0],   [90, 0, 0]  ],
+            [ 5, [0, offset, 0],    [-90, 0, 0] ]
         ]) {
             if (which == -1 || which == data[0]) {
                 translate(data[1]) {
@@ -152,5 +136,5 @@ module faces(which = -1, offset = 30) {
 
 %cube(size = [SIZE, SIZE, SIZE], center = true);
 
-faces(0, 0);
+faces(5, 0);
 
