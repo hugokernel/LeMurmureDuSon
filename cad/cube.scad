@@ -29,19 +29,21 @@ REFLECTOR_HEIGHT = 12;
 
 DEBUG = false;
 
-module coil() {
+module coil(hole = true, height = 1.7) {
     ediameter = 39;
     idiameter = 29.1;
     difference() {
-        cylinder(r = ediameter / 2, h = 1.7);
+        cylinder(r = ediameter / 2, h = height);
 
         translate([0, 0, -2]) {
             cylinder(r = idiameter / 2, h = 10);
         }
     }
 
-    translate([(ediameter - (ediameter - idiameter) / 2) / 2, 0, 0]) {
-        cylinder(r = 2, h = 12);
+    if (hole) {
+        translate([(ediameter - (ediameter - idiameter) / 2) / 2, 0, 0]) {
+            cylinder(r = 2, h = 12);
+        }
     }
 }
 
@@ -630,12 +632,86 @@ module getsides(sides, offset = 10) {
     }
 }
 
-if (0) {
+module base() {
+    coeff = 1.4;
+    thickness = 4.2;
+    size = SIZE * coeff;
 
-    //main();
-    main(-1, 0);
+    module cable() {
+        // Cable
+        translate([SIZE / 2, 0, 0]) {
+            rotate([0, 90, 0]) {
+                cylinder(r = thickness / 2 - thickness * 0.1, h = 20);
+            }
+        }
+    }
 
-    faces(-1, 5);
+    module usb() {
+        length = 9;
+        width = 7.2;
+        thickness = 3;
+
+        // Usb
+        translate([size / 2 - width / 2 + 0.001, 0, 0]) {//-thickness / 2 - 0.01]) {
+            cube(size = [width, length, thickness], center = true);
+        }
+    }
+
+    module enveloppe() {
+        base_thickness = 0.5;
+        gain = 3;
+        sizee = size + gain;
+        clear = 0;
+        translate([0, 0, - thickness / 2 - base_thickness / 2]) {
+            cube(size = [sizee, sizee, base_thickness], center = true);
+        }
+
+        translate([0, 0, 0]) {
+            difference() {
+                cube(size = [sizee, sizee, thickness], center = true);
+                translate([0, 0, 0.1]) {
+                    cube(size = [size + clear, size + clear, thickness], center = true);
+                }
+
+                translate([gain / 2, 0, 0]) {
+                    //usb();
+                    cable();
+                }
+            }
+        }
+    }
+
+    module plate() {
+        difference() {
+            cube(size = [size, size, thickness], center = true);
+
+            //translate([0, 0, -thickness / 2 - 0.01]) {
+            translate([0, 0, -3]) {
+                coil(hole = false, height = thickness);
+            }
+
+            //translate([33, 0, -thickness / 2 - 0.01]) {
+            translate([33, 0, -0.3]) {
+                cube(size = [28, 25, thickness], center = true);
+            }
+
+            //usb();
+            cable();
+        }
+    }
+
+    plate();
+    //enveloppe();
+}
+
+if (1) {
+
+    //main(-1, 0);
+    //faces(-1, 5);
+
+    translate([0, 0, -SIZE / 2]) {
+        base();
+    }
 
 } else {
 

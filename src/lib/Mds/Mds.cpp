@@ -60,6 +60,11 @@ void Mds::init(void) {
 
     loadConfig();
 
+    // Led mapping
+    for (int i = 0; i < sizeof(config.ledMapping); i++) {
+        Leds[i] = config.ledMapping[i];
+    }
+
     pinMode(CHG, INPUT);
 
     // Set output
@@ -158,26 +163,64 @@ bool Mds::isBusy() {
     return Mds::_isBusy;
 }
 
-float Mds::getBatteryVoltage() {
+double Mds::getBatteryVoltage() {
     int ad0 = analogRead(AD0);
-    return ad0 * VBAT_LSB / VBAT_RATIO;
-    // 1024 * 0.0041015625 / 0.2444444
+    return VBAT(ad0); //((float)ad0 * VBAT_LSB) * VCHG_RATIO;
 }
 
-float Mds::getChargerVoltage() {
+uint8_t Mds::getBatteryState() {
+    int vbat = analogRead(AD0);
+
+    if (vbat >= BATTERY_LEVEL_FULL) {
+        return BATTERY_STATE_FULL;
+    }
+
+    if (vbat >= BATTERY_LEVEL_LOW) {
+        return BATTERY_STATE_LOW;
+    }
+
+    if (vbat >= BATTERY_LEVEL_CRITICAL) {
+        return BATTERY_STATE_CRITICAL;
+    }
+
+    if (vbat >= BATTERY_LEVEL_STOP) {
+        return BATTERY_STATE_STOP;
+    }
+}
+
+double Mds::getChargerVoltage() {
     int ad1 = analogRead(AD1);
-    return ad1 * VCHG_LSB / VCHG_RATIO;
+    return VCHG(ad1); //ad1 * VCHG_LSB / VCHG_RATIO;
 }
 
 float Mds::getTemperature() {
-    int temp = analogRead(TEMP);
+    //int temp = analogRead(TEMP);
     // From http://playground.arduino.cc/Main/InternalTemperatureSensor
-    float t = (temp - 324.31) / 1.22;
-    return temp;
+
+    unsigned int wADC;
+    double t;
+    // Set the internal reference and mux.
+    ADMUX = (_BV(REFS1) | _BV(REFS0) | _BV(MUX3));
+    ADCSRA |= _BV(ADEN);  // enable the ADC
+
+    delay(20);            // wait for voltages to become stable.
+
+    ADCSRA |= _BV(ADSC);  // Start the ADC
+
+    // Detect end-of-conversion
+    while (bit_is_set(ADCSRA,ADSC));
+
+    // Reading register "ADCW" takes care of how to read ADCL and ADCH.
+    wADC = ADCW;
+    return (wADC - 324.31 ) / 1.22;
 }
 
 bool Mds::isCharging() {
     return !READ(CHG);
+}
+
+bool Mds::isOnCharger() {
+    return analogRead(AD1) > 0;
 }
 
 bool Mds::record(uint8_t index) {
@@ -291,7 +334,6 @@ void Mds::ledsColor(uint8_t color) {
     for (c = 0; c < strip.numLEDs(); c++) {
         strip.setLEDcolor(c, color);
     }
-
     strip.writeStrip();
 }
 

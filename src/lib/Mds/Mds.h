@@ -55,19 +55,42 @@
 #define AD1     7   // Charger
 #define TEMP    8   // Avr internal temperature sensor
 
+/**
+ *  Analog parts
+ */
+#define VIN_MAX     (double)1.1
+
 // Battery voltage
 #define R11         6800
 #define R12         2200
-#define VBAT_MAX    1.2
-#define VBAT_LSB    (float)VBAT_MAX / 1024
-#define VBAT_RATIO  (float)R12 / (R11 + R12)
+#define VBAT_MAX    (double)4.5
+#define VBAT_LSB    (double)(VIN_MAX / 1024)
+//#define VBAT_RATIO  (double)(R12 / (R11 + R12))
+#define VBAT_RATIO  (double)(VBAT_MAX / VIN_MAX)
+#define VBAT(value) (double)value * (double)VBAT_LSB * (double)VBAT_RATIO 
+//#define VBAT(value) (double)value * 0.0039950
+
+#define BATTERY_LEVEL(x)    x / (VBAT_LSB * VBAT_RATIO)
+
+#define BATTERY_LEVEL_FULL      BATTERY_LEVEL(3.5)
+#define BATTERY_LEVEL_LOW       BATTERY_LEVEL(3.3)
+#define BATTERY_LEVEL_CRITICAL  BATTERY_LEVEL(3.1)
+#define BATTERY_LEVEL_STOP      BATTERY_LEVEL(3.0)
+
+#define BATTERY_STATE_FULL      3
+#define BATTERY_STATE_LOW       2
+#define BATTERY_STATE_CRITICAL  1
+#define BATTERY_STATE_STOP      0
+
 
 // Charger voltage
 #define R13         10000
 #define R14         1500
 #define VCHG_MAX    7
-#define VCHG_LSB    (float)VCHG_MAX / 1024
-#define VCHG_RATIO  (float)R14 / (R13 + R14)
+#define VCHG_LSB    (double)VIN_MAX / 1024
+//#define VCHG_RATIO  (float)R14 / (R13 + R14)
+#define VCHG_RATIO  (double)(VCHG_MAX / VIN_MAX)
+#define VCHG(value) (double)value * (double)VCHG_LSB * (double)VCHG_RATIO 
 
 typedef enum Sides {
     SIDE_UNKNOW = -1,
@@ -112,6 +135,7 @@ typedef struct config_t {
     char version[4];
     unsigned int msgDuration;
     bool debugMode;
+    char ledMapping[6];
 };
 
 /*
@@ -196,9 +220,11 @@ public:
     bool isBusy();
 
     bool isCharging();
+    bool isOnCharger();
 
-    float getBatteryVoltage();
-    float getChargerVoltage();
+    uint8_t getBatteryState();
+    double getBatteryVoltage();
+    double getChargerVoltage();
     float getTemperature();
 
     bool record(uint8_t);

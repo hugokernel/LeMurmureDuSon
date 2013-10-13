@@ -19,4 +19,5 @@ pro328bb.build.mcu=atmega328p
 pro328bb.build.f_cpu=8000000L
 pro328bb.build.core=arduino
 pro328bb.build.variant=standard
+##pro328bb.build.variant=eightanaloginputs
 

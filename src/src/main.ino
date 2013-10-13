@@ -1,18 +1,29 @@
 
+#include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include "Wire.h"
 //#include <ADXL345.h>
 //#include <HL1606strip.h>
 #include <SerialCommand.h>
 #include "init.h"
-#include "HL1606stripPWM.h"
+//#include "HL1606stripPWM.h"
 
 #define LED_COUNT 6
 
+#define BLACK   0b000
+#define WHITE   0b111
+#define RED     0b100
+#define YELLOW  0b101
+#define GREEN   0b001
+#define TEAL    0b011
+#define BLUE    0b010
+#define VIOLET  0b110
+
 extern uint8_t Messages[8];
 //extern uint8_t Sides[6];
-uint8_t Colors[6] = {
-    RED, YELLOW, GREEN, TEAL, BLUE, VIOLET
+uint8_t Colors[] = {
+    RED, YELLOW, GREEN, TEAL, BLUE, VIOLET,
+    WHITE, BLACK
 };
 
 extern uint8_t Leds[6];
@@ -25,7 +36,7 @@ void unrecognized(const char *);
 SerialCommand sCmd;
 
 HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, LED_COUNT);
-HL1606stripPWM strippwm = HL1606stripPWM(LED_COUNT, STRIP_L);
+//HL1606stripPWM strippwm = HL1606stripPWM(LED_COUNT, STRIP_L);
 ADXL345 accel = ADXL345();
 
 Mds mds(strip, accel);
@@ -38,12 +49,14 @@ void setup()
 
     delay(1500);
     sCmd.setDefaultHandler(unrecognized);
+    sCmd.addCommand("help",     cmd_help);
     sCmd.addCommand("led",      cmd_led);
     sCmd.addCommand("play",     cmd_play);
     sCmd.addCommand("record",   cmd_record);
     sCmd.addCommand("stop",     cmd_stop);
     sCmd.addCommand("config",   cmd_config);
-    sCmd.addCommand("sensor",   cmd_sensor);
+    sCmd.addCommand("info",     cmd_info);
+    sCmd.addCommand("demo",     cmd_demo);
 
     mds.init();
 
@@ -74,9 +87,11 @@ void setup()
 
     mds.ledsOff();
 
+/*
     strippwm.setPWMbits(5);
     strippwm.setSPIdivider(32);
     strippwm.setCPUmax(80);
+*/
 
     //pos_reset();
 
@@ -127,17 +142,17 @@ unsigned int Wheel(byte WheelPos)
       r=31- WheelPos % 32;   //Red down
       g=WheelPos % 32;      // Green up
       b=0;                  //blue off
-      break; 
+      break;
     case 1:
       g=31- WheelPos % 32;  //green down
       b=WheelPos % 32;      //blue up
       r=0;                  //red off
-      break; 
+      break;
     case 2:
-      b=31- WheelPos % 32;  //blue down 
+      b=31- WheelPos % 32;  //blue down
       r=WheelPos % 32;      //red up
       g=0;                  //green off
-      break; 
+      break;
   }
   return(Color(r,g,b));
 }
@@ -145,6 +160,7 @@ unsigned int Wheel(byte WheelPos)
 double data[10];
 uint8_t data_index = 0;
 double result = 0;
+bool lastChargingStatus = false;
 
 void loop() {
 
@@ -152,6 +168,8 @@ void loop() {
 
     //mds.accel.printAllRegister();
     //while(1);
+
+    //mds.ledsColor(VIOLET);
 
     while (!tick) {
         sCmd.readSerial();
@@ -194,10 +212,46 @@ Serial.print("]");
     //    mds.ledsColor(RED);
     //}
 
-    if (mds.isCharging()) {
+    // Test battery
+    switch (mds.getBatteryState()) {
+        case BATTERY_STATE_FULL:
+        case BATTERY_STATE_LOW:
+            break;
+        case BATTERY_STATE_CRITICAL:
+            mds.ledsOff();
+            PLN("Charge me !");
+            delay(500);
+            break;
+        case BATTERY_STATE_STOP:
+            mds.ledsOff();
+            PLN("Power down in 2 seconds !");
+            delay(2000);
+            while(1) {
+                P("Power down");
+                delay(1000);
+            }
+            set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+            cli();
+            sleep_enable();
+            //sleep_bod_disable();
+            return;
+    }
+
+    if (mds.isOnCharger()) {
+
+        if (mds.isCharging() && mds.getBatteryState() <= BATTERY_STATE_LOW) {
+            mds.ledsColor(RED);
+        } else {
+            mds.ledsColor(WHITE);
+        }
+
+        lastChargingStatus = true;
+
         //mds.rainbowParty(500);
+        //return;
         //mds.colorSwirl();
 
+/*
         strippwm.begin();
 
         uint8_t j=0;
@@ -222,8 +276,18 @@ Serial.print("]");
 
         mds.ledsOff();
         mds.ledOn(Leds[mds.event.current_side], Colors[mds.event.current_side]);
+*/
 
-        return;
+        // Reset event
+        //mds.event.processed = false;
+        goto lesgotocaimal;
+    } else {
+        // If last time, charger is in progress
+        if (lastChargingStatus) {
+            mds.ledsOff();
+        }
+
+        lastChargingStatus = false;
     }
 
     mds.detectEvent();
@@ -240,6 +304,12 @@ Serial.print("]");
 
         // Play mode
         if (mds.event.validated) {
+
+            if (mds.isRecording()) {
+                Serial.print("Stop recording !");
+                mds.stop();
+            }
+
             //Serial.print(mds.position.largest);
             Serial.print("Play message #");
             Serial.println(mds.event.current_side);
@@ -261,7 +331,10 @@ Serial.print("]");
 
                 mds.stop();
             } else {
-                mds.vibrate(50);
+                mds.vibrate(150);
+                delay(500);
+                mds.vibrate(150);
+                delay(500);
 
                 Serial.print("Record message #");
                 Serial.print(mds.event.current_side);
@@ -320,6 +393,7 @@ Serial.print("shaked");
         */
     }
 
+lesgotocaimal:
     tick = false;
     TIMSK1 |= (1 << TOIE1);
 }
@@ -378,7 +452,7 @@ Serial.print("shaked");
         Serial.print(" ");
     }
     Serial.println("");
-    //Serial.println(findPositionLargest(xyz, 3), DEC); 
+    //Serial.println(findPositionLargest(xyz, 3), DEC);
 
     absValue = getHigher(mds.xyz, index, sign);
 */
@@ -388,26 +462,72 @@ void cmd_led() {
     unsigned int index, color = 0;
 
     arg = sCmd.next();
-    index = atoi(arg);
-    if (index < 0 || index >= sizeof(Leds)) {
-        PLN("Index range : 0...7");
-    } else {
-        P("Set led ");
-        P(index);
+    if (!strcmp(arg, "set")) {
+        arg = sCmd.next();
+        index = atoi(arg);
+        if (index < 0 || index >= sizeof(Leds)) {
+            PLN("Index range : 0...7");
+        } else {
+            P("Set led ");
+            P(index);
 
+            arg = sCmd.next();
+            color = atoi(arg);
+            if (index < 0 || index >= sizeof(Colors)) {
+                PLN("Color range : 0...5");
+            }
+
+            P(" to color ");
+            P(color);
+
+            //mds.ledsOff();
+            mds.ledOn(Leds[index], Colors[color]);
+
+            PLN("");
+        }
+    } else if (!strcmp(arg, "all")) {
         arg = sCmd.next();
         color = atoi(arg);
         if (index < 0 || index >= sizeof(Colors)) {
-            PLN("Color range : 0...7");
+            PLN("Color range : 0...5");
         }
 
-        P(" to color ");
+        P("Set all led to color ");
         P(color);
 
-        //mds.ledsOff();
-        mds.ledOn(Leds[index], Colors[color]);
+        mds.ledsColor(Colors[color]);
 
         PLN("");
+    } else if (!strcmp(arg, "off")) {
+        mds.ledsOff();
+        PLN("Leds off !");
+    } else if (!strcmp(arg, "map")) {
+
+        arg = sCmd.next();
+        if (!strcmp(arg, "get")) {
+            arg = sCmd.next();
+        
+            P("Mapping : ");
+
+            for (int i = 0; i < sizeof(Leds); i++) {
+                P(Leds[i]);
+            }
+
+            PLN("");
+        
+        } else if (!strcmp(arg, "set")) {
+            arg = sCmd.next();
+            //index = atoi(arg);
+
+            for (int i = 0; i < strlen(arg); i++) {
+                mds.config.ledMapping[i] = arg[i] - ((int)'0');
+                Leds[i] = mds.config.ledMapping[i];
+            }
+
+            mds.saveConfig();
+            P("New mapping set to ");
+            PLN(arg);
+        }
     }
 }
 
@@ -424,8 +544,8 @@ void cmd_play() {
         P(index);
 
         mds.ledsOff();
-        //mds.ledOn(Leds[index], GREEN);
-        mds.ledsColor(GREEN);
+        mds.ledOn(Leds[index], GREEN);
+        //mds.ledsColor(GREEN);
         mds.play(index);
         //delay(6000);
         //mds.stop();
@@ -460,7 +580,7 @@ void cmd_record() {
         }
 
         P(" : Speak !");
-       
+
         mds.record(index);
         delay(mds.config.msgDuration);
         mds.stop();
@@ -470,6 +590,7 @@ void cmd_record() {
 }
 
 void cmd_config() {
+    int i = 0;
     char *arg;
     arg = sCmd.next();
     if (!strcmp(arg, "read")) {
@@ -480,6 +601,11 @@ void cmd_config() {
         PLN(mds.config.version);
         P("msgDuration : ");
         PLN(mds.config.msgDuration);
+        P("ledMapping  : ");
+        for (i = 0; i < sizeof(mds.config.ledMapping); i++) {
+            P((char)(mds.config.ledMapping[i] + ((int)'0')));
+        }
+        PLN("");
     } else if (!strcmp(arg, "default")) {
         strcat(mds.config.version, MDS_VERSION);
         mds.config.msgDuration = MSG_DURATION;
@@ -502,16 +628,16 @@ void cmd_config() {
     }
 }
 
-void cmd_sensor() {
+void cmd_info() {
     double data[3];
     int error = 0;
-    float headingDegrees, heading; 
+    float headingDegrees, heading;
 
     error = mds.compass.SetScale(1.3);
     if (error != 0) {
         //Serial.println(mds.compass.GetErrorText(error));
     }
-  
+
     error = mds.compass.SetMeasurementMode(Measurement_Continuous);
     if (error != 0) {
         //Serial.println(mds.compass.GetErrorText(error));
@@ -526,14 +652,46 @@ void cmd_sensor() {
             }
         }
 
-        /*
-        paf();
-        delay(1000);
-        continue;
-        */
+        PLN("[Power]");
+        P(" Battery voltage : ");
+        PLN(mds.getBatteryVoltage());
 
-        P("Charger ");
-        PLN(READ(CHG));
+        P(" Battery status : ");
+        switch (mds.getBatteryState()) {
+            case BATTERY_STATE_FULL:
+                PLN("Full");
+                break;
+            case BATTERY_STATE_LOW:
+                PLN("Low");
+                break;
+            case BATTERY_STATE_CRITICAL:
+                PLN("Critical");
+                break;
+            case BATTERY_STATE_STOP:
+                PLN("Stop");
+                break;
+        }
+
+        P(" Charge : ");
+        if (mds.isOnCharger()) {
+            if (!mds.isCharging()) {
+                PLN("Standby");
+            } else {
+                PLN("In progress");
+            }
+        } else {
+            PLN("None");
+        }
+
+        P(" On charger : ");
+        if (mds.isOnCharger()) {
+            PLN("True");
+        } else {
+            PLN("False");
+        }
+
+        P(" Charger voltage : ");
+        PLN(mds.getChargerVoltage());
 
         MagnetometerRaw raw = mds.compass.ReadRawAxis();
         heading = atan2(raw.YAxis, raw.XAxis);
@@ -543,7 +701,8 @@ void cmd_sensor() {
             heading += 2 * PI;
         }
 
-        P("Magnetometer : ");
+        PLN("\n[Sensor]");
+        P(" Magnetometer : ");
         P(heading * 180 / M_PI);
         PLN(" degree");
 
@@ -557,21 +716,17 @@ void cmd_sensor() {
 */
 
         accel.get_Gxyz(data);
-        P("Accelerometer x:");
+        P(" Accelerometer x:");
         P(data[0]);
         P(", y:");
         P(data[1]);
         P(", z:");
         PLN(data[2]);
 
-        P("Battery voltage : ");
-        PLN(mds.getBatteryVoltage());
-
-        P("Charger voltage : ");
-        PLN(mds.getChargerVoltage());
-
-        P("Temperature : ");
+        P(" Temperature : ");
         PLN(mds.getTemperature());
+
+        PLN("--");
 
         delay(1000);
     }
@@ -600,21 +755,21 @@ void magnetometerDump()
     }
 
     // Convert radians to degrees for readability.
-    float headingDegrees = heading * 180/M_PI; 
+    float headingDegrees = heading * 180/M_PI;
 
     // Output the data via the serial port.
     Serial.print("Raw:\t");
     Serial.print(raw.XAxis);
-    Serial.print("   ");   
+    Serial.print("   ");
     Serial.print(raw.YAxis);
-    Serial.print("   ");   
+    Serial.print("   ");
     Serial.print(raw.ZAxis);
     Serial.print("   \tScaled:\t");
 
     Serial.print(scaled.XAxis);
-    Serial.print("   ");   
+    Serial.print("   ");
     Serial.print(scaled.YAxis);
-    Serial.print("   ");   
+    Serial.print("   ");
     Serial.print(scaled.ZAxis);
 
     Serial.print("   \tHeading:\t");
@@ -622,5 +777,31 @@ void magnetometerDump()
     Serial.print(" Radians   \t");
     Serial.print(headingDegrees);
     Serial.println(" Degrees   \t");
+}
+
+void cmd_demo() {
+    while (true) {
+        mds.rainbowParty(500);
+
+        while (Serial.available() > 0) {
+            if (Serial.read()) {
+                return;
+            }
+        }
+    }
+
+    delay(1000);
+    mds.ledsOff();
+}
+
+void cmd_help() {
+    PLN("Command list :");
+    PLN("- led");
+    PLN("- play");
+    PLN("- record");
+    PLN("- stop");
+    PLN("- config");
+    PLN("- info");
+    PLN("- demo");
 }
 
