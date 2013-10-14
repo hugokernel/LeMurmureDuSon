@@ -102,6 +102,12 @@ typedef enum Sides {
     SIDE_5 = 5,
 };
 
+typedef enum Status {
+    STATUS_EMPTY = 0,
+    STATUS_FULL  = 1,
+    STATUS_READ  = 2
+};
+
 typedef struct position_t {
     double xyz[3];  // Current values from sensor
 
@@ -120,7 +126,8 @@ typedef struct position_t {
 #define COUNTER_INC_VALUE   1
 #define COUNTER_DEC_VALUE   3
 
-#define THRESHOLD_SHAKED_INC_MIN     1.6
+// 1.6
+#define THRESHOLD_SHAKED_INC_MIN    1.4
 
 #define COUNTER_SHAKED_VALID_VALUE  4      // Nombre de position mini
 #define COUNTER_SHAKED_INC_VALUE    1
@@ -174,6 +181,13 @@ typedef struct event_t {
         { }
 };
 
+/*
+typedef struct path_t {
+    uint8_t index;
+    uint8_t faces[10];
+};
+*/
+
 class Mds {
 private:
 
@@ -197,6 +211,8 @@ public:
     volatile static bool _isRecording;
     volatile static bool _isBusy;
     //volatile static bool _isCharging;
+    
+    bool _mute;
 
     HL1606strip strip;
 
@@ -205,6 +221,18 @@ public:
 
     position_t position;
     event_t event;
+
+    // Message status
+    Status status[6];
+
+    void setStatus(Status);
+
+    // Path related
+    uint8_t path_index;
+    uint8_t path[5];
+
+    void addPath(uint8_t);
+    bool testPath(uint8_t [], uint8_t);
 
     // Configuration
     config_t config;
@@ -227,6 +255,7 @@ public:
     double getChargerVoltage();
     float getTemperature();
 
+    void mute(bool);
     bool record(uint8_t);
     bool play(uint8_t);
     bool stop();
@@ -250,7 +279,10 @@ public:
     void resetEvent();
     void detectEvent();
 
-    //void setCallbacks(void *(), void *());
+    void (*_callback_play)(uint8_t);
+    void (*_callback_record)(uint8_t);
+    void (*_callback_stop)();
+    void setCallbacks(void (*)(uint8_t), void (*)(uint8_t), void (*)());
 
 //    void interruptRising();
 //    void interruptFalling();

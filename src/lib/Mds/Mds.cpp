@@ -60,6 +60,8 @@ void Mds::init(void) {
 
     loadConfig();
 
+    memset(path, 0x00, sizeof(path));
+
     // Led mapping
     for (int i = 0; i < sizeof(config.ledMapping); i++) {
         Leds[i] = config.ledMapping[i];
@@ -97,6 +99,8 @@ void Mds::init(void) {
     //attachInterrupt(1, interruptChg, FALLING);
 
     analogReference(INTERNAL);
+
+    _mute = false;
 
  /*
     //accel.setRangeSetting(2);
@@ -225,6 +229,8 @@ bool Mds::isOnCharger() {
 
 bool Mds::record(uint8_t index) {
 
+    _callback_record(index);
+
     DOWN(REC_PLAY);
 
     // Todo: Sleep for 30ns
@@ -235,6 +241,8 @@ bool Mds::record(uint8_t index) {
 
     Mds::_isRecording = true;
     Mds::_isBusy = true;
+
+    status[index] = STATUS_FULL;
 }
 
 void Mds::msgDown(uint8_t value) {
@@ -265,28 +273,38 @@ void Mds::msgUp(uint8_t value) {
 #endif
 }
 
+void Mds::mute(bool mstatus) {
+    _mute = mstatus;
+}
+
 bool Mds::play(uint8_t index) {
 
-    if (Mds::_isPlaying) {
-        msgDown(Messages[currentMsg]);
-        delay(20);
-        msgUp(Messages[currentMsg]);
-        delay(20);
-    }
+    _callback_play(index);
+    if (!_mute) {
+        if (Mds::_isPlaying) {
+            msgDown(Messages[currentMsg]);
+            delay(20);
+            msgUp(Messages[currentMsg]);
+            delay(20);
+        }
 
-    UP(REC_PLAY);
-    // Todo: Sleep for 30ns
-    delay(1);
-    msgDown(Messages[index]);
-    
-    // 225k / fs = ~18ms
-    delay(20); 
-    msgUp(Messages[index]);
+        UP(REC_PLAY);
+
+        // Todo: Sleep for 30ns
+        delay(1);
+        msgDown(Messages[index]);
+        
+        // 225k / fs = ~18ms
+        delay(20); 
+        msgUp(Messages[index]);
+    }
 
     currentMsg = index;
 
     Mds::_isPlaying = true;
     Mds::_isBusy = true;
+
+    status[index] = STATUS_READ;
 }
 
 bool Mds::stop() {
@@ -300,6 +318,8 @@ bool Mds::stop() {
     msgUnselect();
     Mds::_isBusy = false;
     currentMsg = -1;
+
+    _callback_stop();
 }
 
 void Mds::vibrate(int time) {
@@ -363,6 +383,94 @@ void Mds::rainbowParty(uint8_t wait) {
         strip.writeStrip();
         delay(wait);
     }
+}
+
+void Mds::setStatus(Status newstatus) {
+    for (int i = 0; i < sizeof(status); i++) {
+        status[i] = newstatus;
+    }
+}
+
+void Mds::setCallbacks(void (*play)(uint8_t), void (*record)(uint8_t), void (*stop)()) {
+    _callback_play = play;
+    _callback_record = record;
+    _callback_stop = stop;
+}
+
+void Mds::addPath(uint8_t face) {
+
+    uint8_t i, o = 0;
+
+    if (path_index < sizeof(path)) {
+
+        // Skip if same face
+        if (face == path[max(0, path_index - 1)]) {
+            return;
+        }
+
+        path[path_index++] = face;
+
+        //if (path_index >= sizeof(path)) {
+        //    path_index = sizeof(path);
+        //}
+    } else {
+        /*
+        Serial.print("[");
+        //Serial.print(path[sizeof(path) - 1]);
+        Serial.print(path_index);
+        Serial.print(" - ");
+        Serial.print(path[path_index]);
+        Serial.print("]");
+        */
+
+        // Skip if same face
+        if (face == path[sizeof(path) - 1]) {
+        //if (face == path[path_index]) {
+            return;
+        }
+
+        //for (int i = 0; i < sizeof(path) - 1; i++) {
+        for (i = 0, o = 1; i < path_index - 1; i++, o++) {
+            path[i] = path[o];
+        }
+
+        //path[sizeof(path) - 1] = face;
+        path[path_index - 1] = face;
+    }
+
+    Serial.print("AddPath: ");
+    for (int i = 0; i < sizeof(path); i++) {
+        Serial.print(path[i]);
+        Serial.print(", ");
+    }
+
+    /*
+     */
+}
+
+bool Mds::testPath(uint8_t pattern[], uint8_t count) {
+    bool found = false;
+    uint8_t offset, i = 0;
+
+    //[ 2, 0, 2, 4, 0, 1 ]
+    //[ 2, 4, 0, 1 ]
+
+    if (path_index >= sizeof(path)) {
+        offset = sizeof(path) - 1 - sizeof(pattern);
+    }
+
+    //for (i = 0; i < min(count, sizeof(path)); i++) {
+    for (i = 0; i < sizeof(path); i++) {
+        if (pattern[i] != path[i++]) {
+            return false;
+        }
+
+        if (i >= sizeof(path)) {
+            i = 0;
+        }
+    }
+
+    return true;
 }
 
 /*
@@ -537,6 +645,8 @@ Serial.println("]");
         //Serial.println("HERE!!!!");
         event.validated = true;
         event.last_validated_axe = position.axe;
+
+        addPath(event.current_side);
     }
 //return;
     /**

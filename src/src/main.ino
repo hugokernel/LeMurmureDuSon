@@ -19,6 +19,8 @@
 #define BLUE    0b010
 #define VIOLET  0b110
 
+//#define MUTE
+
 extern uint8_t Messages[8];
 //extern uint8_t Sides[6];
 uint8_t Colors[] = {
@@ -43,6 +45,40 @@ Mds mds(strip, accel);
 
 volatile bool tick = false;
 
+uint8_t pattern_demo[] = {
+    2, 4, 2, 4, 2
+};
+
+void cplay(uint8_t index) {
+    //Serial.print(mds.position.largest);
+    P("Play message #");
+    PLN(mds.event.current_side);
+
+    mds.ledsColor(WHITE);
+
+    // Side led on, play !
+    //mds.ledOn(Leds[mds.event.current_side], Colors[mds.event.current_side]);
+    mds.ledOn(Leds[mds.event.current_side], BLUE);
+}
+
+void crecord(uint8_t index) {
+    mds.vibrate(150);
+    delay(500);
+    mds.vibrate(150);
+    delay(500);
+    mds.vibrate(150);
+    delay(500);
+
+    Serial.print("Record message #");
+    Serial.print(mds.event.current_side);
+
+    mds.ledOn(Leds[mds.event.current_side], RED);
+}
+
+void cstop() {
+    mds.ledsColor(WHITE);
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -57,8 +93,16 @@ void setup()
     sCmd.addCommand("config",   cmd_config);
     sCmd.addCommand("info",     cmd_info);
     sCmd.addCommand("demo",     cmd_demo);
+    sCmd.addCommand("color",    cmd_color);
+    sCmd.addCommand("fstatus",  cmd_fstatus);
+    sCmd.addCommand("mute",     cmd_mute);
+    //sCmd.addCommand("vibrate",  cmd_vibrate);
 
     mds.init();
+
+#ifdef MUTE
+    mds.mute(true);
+#endif
 
     /*
     while (1) {
@@ -86,7 +130,9 @@ void setup()
 */
 
     mds.ledsOff();
+    mds.ledsColor(WHITE);
 
+    mds.setCallbacks(cplay, crecord, cstop);
 /*
     strippwm.setPWMbits(5);
     strippwm.setSPIdivider(32);
@@ -169,7 +215,7 @@ void loop() {
     //mds.accel.printAllRegister();
     //while(1);
 
-    //mds.ledsColor(VIOLET);
+    //mds.ledsColor(WHITE);
 
     while (!tick) {
         sCmd.readSerial();
@@ -310,15 +356,6 @@ Serial.print("]");
                 mds.stop();
             }
 
-            //Serial.print(mds.position.largest);
-            Serial.print("Play message #");
-            Serial.println(mds.event.current_side);
-
-            mds.ledsOff();
-
-            // Side led on, play !
-            mds.ledOn(Leds[mds.event.current_side], Colors[mds.event.current_side]);
-
             mds.play(mds.event.current_side);
 
             mds.event.processed = true;
@@ -331,16 +368,6 @@ Serial.print("]");
 
                 mds.stop();
             } else {
-                mds.vibrate(150);
-                delay(500);
-                mds.vibrate(150);
-                delay(500);
-
-                Serial.print("Record message #");
-                Serial.print(mds.event.current_side);
-
-                mds.ledOn(Leds[mds.event.current_side], RED);
-
                 mds.record(mds.event.current_side);
 
                 // 6 seconds later, stop !
@@ -391,6 +418,21 @@ Serial.print("shaked");
             }
         }
         */
+    }
+
+    // Test pattern
+    if (mds.testPath(pattern_demo, sizeof(pattern_demo))) {
+        //PLN("Found demo pattern !");
+        //delay(1000);
+        //cmd_demo();
+
+        for (int i = 0; i < 7; i++) {
+            mds.vibrate(50);
+            mds.rainbowParty(100);
+        }
+
+        memset(mds.path, 0x00, sizeof(mds.path));
+        mds.ledsColor(WHITE);
     }
 
 lesgotocaimal:
@@ -531,6 +573,22 @@ void cmd_led() {
     }
 }
 
+void cmd_color() {
+    char *arg;
+    unsigned int index, color = 0;
+
+    arg = sCmd.next();
+    color = atoi(arg);
+    if (index < 0 || index >= sizeof(Colors)) {
+        PLN("Color range : 0...5");
+    }
+
+    P("Set color ");// (RED, YELLOW, GREEN, TEAL, BLUE, VIOLET,  WHITE, BLACK) ");
+    PLN(color);
+
+    mds.ledsColor(Colors[color]);
+}
+
 void cmd_play() {
     char *arg;
     unsigned int index = 0;
@@ -543,9 +601,6 @@ void cmd_play() {
         P("Play ");
         P(index);
 
-        mds.ledsOff();
-        mds.ledOn(Leds[index], GREEN);
-        //mds.ledsColor(GREEN);
         mds.play(index);
         //delay(6000);
         //mds.stop();
@@ -794,6 +849,48 @@ void cmd_demo() {
     mds.ledsOff();
 }
 
+void cmd_fstatus() {
+    uint8_t index, status = 0;
+    int i = 0;
+    char *arg;
+    arg = sCmd.next();
+    index = atoi(arg);
+
+    PLN("Status (0:empty, 1:full, 2:read)");
+
+    if (index < 0 || index > 5) {
+        PLN("Index range : 0...6");
+        return;
+    }
+
+    arg = sCmd.next();
+    status = atoi(arg);
+    if (index < 0 || index > 2) {
+        PLN("Index range : 0...6");
+        return;
+    }
+
+    mds.status[index] = (Status)status;
+
+    P("Face ");
+    P(mds.status[index]);
+    P(" set to ");
+    PLN(status);
+}
+
+void cmd_mute() {
+    bool mute = 0;
+    char *arg;
+
+    arg = sCmd.next();
+
+    mute = atoi(arg);
+    mds.mute((bool)mute);
+
+    P("Mute : ");
+    PLN(mute);
+}
+
 void cmd_help() {
     PLN("Command list :");
     PLN("- led");
@@ -803,5 +900,7 @@ void cmd_help() {
     PLN("- config");
     PLN("- info");
     PLN("- demo");
+    PLN("- fstatus");
+    PLN("- mute");
 }
 
