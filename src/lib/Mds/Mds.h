@@ -5,8 +5,38 @@
 #include "Wire.h"
 #include "ADXL345.h"
 #include "HMC5883L.h"
-#include "HL1606strip.h"
 #include <EEPROM.h>
+
+//#define HL1606
+
+#ifdef HL1606
+#include "HL1606strip.h"
+#define SET_LED_COLOR(index, color) strip.setLEDcolor(index, color)
+#define UPDATE_LED()                strip.writeStrip()
+#define GET_LED_COUNT()             strip.numLEDs()
+#define GET_LED_COLOR(index)        strip.getLEDcolor(index)
+
+#define STRIP_D 11
+#define STRIP_C 13
+#define STRIP_L 10
+#else
+#include <Adafruit_NeoPixel.h>
+#define SET_LED_COLOR(index, color) strip.setPixelColor(index, color)
+#define UPDATE_LED()                strip.show()
+#define GET_LED_COUNT()             strip.numPixels()
+#define GET_LED_COLOR(index)        strip.getPixelColor(index)
+
+#define BLACK   Adafruit_NeoPixel::Color(0, 0, 0)
+#define WHITE   Adafruit_NeoPixel::Color(255, 255, 255)
+#define RED     Adafruit_NeoPixel::Color(255, 0, 0)
+#define YELLOW  Adafruit_NeoPixel::Color(255, 255, 0)
+#define GREEN   Adafruit_NeoPixel::Color(0, 255, 0)
+#define TEAL    Adafruit_NeoPixel::Color(2, 132, 130)
+#define BLUE    Adafruit_NeoPixel::Color(0, 0, 255)
+#define VIOLET  Adafruit_NeoPixel::Color(102, 51, 153)
+
+#define STRIP   13
+#endif
 
 //#define VERSION_06
 #define VERSION_08
@@ -43,10 +73,6 @@
 
 #define REC_PLAY 8
 #define LED 2
-
-#define STRIP_D 11
-#define STRIP_C 13
-#define STRIP_L 10
 
 #define DEBUG
 
@@ -200,7 +226,11 @@ private:
     //void (*_shaked());
 
 public:
+#ifdef HL1606
     Mds(HL1606strip, ADXL345);
+#else
+    Mds(Adafruit_NeoPixel, ADXL345);
+#endif
 
     void init();
 
@@ -214,7 +244,11 @@ public:
     
     bool _mute;
 
+#ifdef HL1606
     HL1606strip strip;
+#else
+    Adafruit_NeoPixel strip;
+#endif
 
     ADXL345 accel;
     HMC5883L compass;
@@ -263,10 +297,10 @@ public:
     // IHM
     void vibrate(int);
 
-    void ledOn(uint8_t, uint8_t);
+    void ledOn(uint8_t, uint32_t);
     void ledsOff();
 
-    void ledsColor(uint8_t);
+    void ledsColor(uint32_t);
 
     void rainbowParty(uint8_t);
 

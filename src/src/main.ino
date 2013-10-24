@@ -10,6 +10,11 @@
 
 #define LED_COUNT 6
 
+//#define MUTE
+
+#ifdef HL1606
+HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, LED_COUNT);
+
 #define BLACK   0b000
 #define WHITE   0b111
 #define RED     0b100
@@ -19,14 +24,30 @@
 #define BLUE    0b010
 #define VIOLET  0b110
 
-//#define MUTE
+//HL1606stripPWM strippwm = HL1606stripPWM(LED_COUNT, STRIP_L);
+
+uint8_t Colors[] = {
+    RED, YELLOW, GREEN, TEAL, BLUE, VIOLET, WHITE, BLACK
+};
+#else
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, STRIP, NEO_GRB + NEO_KHZ800);
+
+#define BLACK   strip.Color(0, 0, 0)
+#define WHITE   strip.Color(255, 255, 255)
+#define RED     strip.Color(255, 0, 0)
+#define YELLOW  strip.Color(255, 255, 0)
+#define GREEN   strip.Color(0, 255, 0)
+#define TEAL    strip.Color(2, 132, 130)
+#define BLUE    strip.Color(0, 0, 255)
+#define VIOLET  strip.Color(102, 51, 153)
+
+uint32_t Colors[] = {
+    RED, YELLOW, GREEN, TEAL, BLUE, VIOLET, WHITE, BLACK
+};
+#endif
 
 extern uint8_t Messages[8];
 //extern uint8_t Sides[6];
-uint8_t Colors[] = {
-    RED, YELLOW, GREEN, TEAL, BLUE, VIOLET,
-    WHITE, BLACK
-};
 
 extern uint8_t Leds[6];
 
@@ -37,8 +58,6 @@ void unrecognized(const char *);
 
 SerialCommand sCmd;
 
-HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, LED_COUNT);
-//HL1606stripPWM strippwm = HL1606stripPWM(LED_COUNT, STRIP_L);
 ADXL345 accel = ADXL345();
 
 Mds mds(strip, accel);
@@ -49,16 +68,39 @@ uint8_t pattern_demo[] = {
     2, 4, 2, 4, 2
 };
 
+unsigned int ledDelayOn = 0;
+bool ledStatus = false;
+
+void setLed(uint8_t index, uint32_t color) {
+    mds.ledOn(index, color);
+    ledDelayOn = 0;
+    ledStatus = true;
+}
+
+void setLeds(uint32_t color) {
+    mds.ledsColor(color);
+    ledDelayOn = 0;
+    ledStatus = true;
+}
+
+void ledsOff() {
+    mds.ledsOff();
+    ledStatus = false;
+    ledDelayOn = 0;
+}
+
 void cplay(uint8_t index) {
     //Serial.print(mds.position.largest);
     P("Play message #");
     PLN(mds.event.current_side);
 
-    mds.ledsColor(WHITE);
+    //mds.ledsColor(WHITE);
+    setLeds(WHITE);
 
     // Side led on, play !
     //mds.ledOn(Leds[mds.event.current_side], Colors[mds.event.current_side]);
-    mds.ledOn(Leds[mds.event.current_side], BLUE);
+    //mds.ledOn(Leds[mds.event.current_side], BLUE);
+    setLed(Leds[mds.event.current_side], BLUE);
 }
 
 void crecord(uint8_t index) {
@@ -72,11 +114,13 @@ void crecord(uint8_t index) {
     Serial.print("Record message #");
     Serial.print(mds.event.current_side);
 
-    mds.ledOn(Leds[mds.event.current_side], RED);
+    //mds.ledOn(Leds[mds.event.current_side], RED);
+    setLed(Leds[mds.event.current_side], RED);
 }
 
 void cstop() {
-    mds.ledsColor(WHITE);
+    //mds.ledsColor(WHITE);
+    setLeds(WHITE);
 }
 
 void setup()
@@ -97,6 +141,38 @@ void setup()
     sCmd.addCommand("fstatus",  cmd_fstatus);
     sCmd.addCommand("mute",     cmd_mute);
     //sCmd.addCommand("vibrate",  cmd_vibrate);
+
+
+    //Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, STRIP_C, NEO_GRB + NEO_KHZ800);
+    strip.begin();
+    strip.show(); // Initialize all pixels to 'off'
+
+    strip.setBrightness(255);
+
+    strip.setPixelColor(0, WHITE);
+    strip.setPixelColor(1, RED);
+    strip.setPixelColor(2, BLUE);
+    strip.show();
+//    delay(2000);
+
+    //while(1);
+
+/*
+    delay(2000);
+    PLN("START");
+
+    while (1) {
+        Serial.print("[");
+        for(uint16_t i=0; i<strip.numPixels(); i++) {
+        //for(uint16_t i=0; i< 60; i++) {
+            strip.setPixelColor(i, RED);
+            strip.show();
+            Serial.print(i);
+            Serial.print(' ');
+        }
+        Serial.print("]");
+    }
+*/
 
     mds.init();
 
@@ -129,8 +205,14 @@ void setup()
     mds.stop();
 */
 
-    mds.ledsOff();
-    mds.ledsColor(WHITE);
+    //mds.ledsOff();
+    //mds.ledsColor(WHITE);
+    ledsOff();
+
+    // Battery save !
+    if (mds.getBatteryState() > BATTERY_STATE_LOW) {
+        setLeds(WHITE);
+    }
 
     mds.setCallbacks(cplay, crecord, cstop);
 /*
@@ -168,7 +250,7 @@ ISR(TIMER1_OVF_vect)
 
 /************************** Pixel routine */
 // this code is from http://www.bliptronics.com Ben Moyes's example code for LEDs, check them out!
-
+/*
 // Create a 15 bit color value from R,G,B
 unsigned int Color(byte r, byte g, byte b)
 {
@@ -202,6 +284,7 @@ unsigned int Wheel(byte WheelPos)
   }
   return(Color(r,g,b));
 }
+*/
 
 double data[10];
 uint8_t data_index = 0;
@@ -258,18 +341,25 @@ Serial.print("]");
     //    mds.ledsColor(RED);
     //}
 
+    // Led on ?
+    if (ledStatus && ledDelayOn++ > 400) {
+        ledsOff();
+    }
+
     // Test battery
     switch (mds.getBatteryState()) {
         case BATTERY_STATE_FULL:
         case BATTERY_STATE_LOW:
             break;
         case BATTERY_STATE_CRITICAL:
-            mds.ledsOff();
+            //mds.ledsOff();
+            ledsOff();
             PLN("Charge me !");
             delay(500);
             break;
         case BATTERY_STATE_STOP:
-            mds.ledsOff();
+            //mds.ledsOff();
+            ledsOff();
             PLN("Power down in 2 seconds !");
             delay(2000);
             while(1) {
@@ -285,10 +375,14 @@ Serial.print("]");
 
     if (mds.isOnCharger()) {
 
-        if (mds.isCharging() && mds.getBatteryState() <= BATTERY_STATE_LOW) {
-            mds.ledsColor(RED);
-        } else {
-            mds.ledsColor(WHITE);
+        if (!lastChargingStatus) {
+            if (mds.isCharging() && mds.getBatteryState() <= BATTERY_STATE_LOW) {
+                //mds.ledsColor(RED);
+                setLeds(RED);
+            } else {
+                //mds.ledsColor(WHITE);
+                setLeds(WHITE);
+            }
         }
 
         lastChargingStatus = true;
@@ -330,7 +424,8 @@ Serial.print("]");
     } else {
         // If last time, charger is in progress
         if (lastChargingStatus) {
-            mds.ledsOff();
+            //mds.ledsOff();
+            ledsOff();
         }
 
         lastChargingStatus = false;
@@ -426,13 +521,14 @@ Serial.print("shaked");
         //delay(1000);
         //cmd_demo();
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 10; i++) {
             mds.vibrate(50);
             mds.rainbowParty(100);
         }
 
         memset(mds.path, 0x00, sizeof(mds.path));
-        mds.ledsColor(WHITE);
+        //mds.ledsColor(WHITE);
+        setLeds(WHITE);
     }
 
 lesgotocaimal:
@@ -523,7 +619,8 @@ void cmd_led() {
             P(color);
 
             //mds.ledsOff();
-            mds.ledOn(Leds[index], Colors[color]);
+            //mds.ledOn(Leds[index], Colors[color]);
+            setLed(Leds[index], Colors[color]);
 
             PLN("");
         }
@@ -537,11 +634,13 @@ void cmd_led() {
         P("Set all led to color ");
         P(color);
 
-        mds.ledsColor(Colors[color]);
+        //mds.ledsColor(Colors[color]);
+        setLeds(Colors[color]);
 
         PLN("");
     } else if (!strcmp(arg, "off")) {
-        mds.ledsOff();
+        //mds.ledsOff();
+        ledsOff();
         PLN("Leds off !");
     } else if (!strcmp(arg, "map")) {
 
@@ -586,7 +685,8 @@ void cmd_color() {
     P("Set color ");// (RED, YELLOW, GREEN, TEAL, BLUE, VIOLET,  WHITE, BLACK) ");
     PLN(color);
 
-    mds.ledsColor(Colors[color]);
+    //mds.ledsColor(Colors[color]);
+    setLeds(Colors[color]);
 }
 
 void cmd_play() {
@@ -846,7 +946,8 @@ void cmd_demo() {
     }
 
     delay(1000);
-    mds.ledsOff();
+    //mds.ledsOff();
+    ledsOff();
 }
 
 void cmd_fstatus() {

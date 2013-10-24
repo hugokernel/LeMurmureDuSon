@@ -24,6 +24,7 @@ volatile bool Mds::_isPlaying = false;
 volatile bool Mds::_isRecording = false;
 volatile bool Mds::_isBusy = false;
 
+#ifdef HL1606
 Mds::Mds(HL1606strip _strip, ADXL345 _accel):
     strip(_strip),
     accel(_accel),
@@ -31,6 +32,15 @@ Mds::Mds(HL1606strip _strip, ADXL345 _accel):
     lastReadMsg(-1)
 {
 }
+#else
+Mds::Mds(Adafruit_NeoPixel _strip, ADXL345 _accel):
+    strip(_strip),
+    accel(_accel),
+    currentMsg(-1),
+    lastReadMsg(-1)
+{
+}
+#endif
 
 void interruptChg() {
     //mds.ledsColor(RED);
@@ -336,51 +346,51 @@ void Mds::vibrate(int time) {
 
 void Mds::ledsOff() {
     uint8_t c = 0;
-    for (c = 0; c < strip.numLEDs(); c++) {
-        strip.setLEDcolor(c, BLACK);
+    for (c = 0; c < GET_LED_COUNT(); c++) {
+        SET_LED_COLOR(c, BLACK);
     }
 
-    strip.writeStrip();
+    UPDATE_LED();
 }
 
-void Mds::ledOn(uint8_t index, uint8_t color) {
-    strip.setLEDcolor(index, color);
-    strip.writeStrip();
+void Mds::ledOn(uint8_t index, uint32_t color) {
+    SET_LED_COLOR(index, color);
+    UPDATE_LED();
 }
 
-void Mds::ledsColor(uint8_t color) {
+void Mds::ledsColor(uint32_t color) {
     uint8_t c = 0;
 
-    for (c = 0; c < strip.numLEDs(); c++) {
-        strip.setLEDcolor(c, color);
+    for (c = 0; c < GET_LED_COUNT(); c++) {
+        SET_LED_COLOR(c, color);
     }
-    strip.writeStrip();
+    UPDATE_LED();
 }
 
 void Mds::rainbowParty(uint8_t wait) {
     uint8_t i, j;
 
-    for (i=0; i< strip.numLEDs(); i+=6) {
+    for (i=0; i< GET_LED_COUNT(); i+=6) {
         // initialize strip with 'rainbow' of colors
-        strip.setLEDcolor(i, RED);
-        strip.setLEDcolor(i+1, YELLOW);
-        strip.setLEDcolor(i+2, GREEN);
-        strip.setLEDcolor(i+3, TEAL);
-        strip.setLEDcolor(i+4, BLUE);
-        strip.setLEDcolor(i+5, VIOLET);
+        SET_LED_COLOR(i, RED);
+        SET_LED_COLOR(i+1, YELLOW);
+        SET_LED_COLOR(i+2, GREEN);
+        SET_LED_COLOR(i+3, TEAL);
+        SET_LED_COLOR(i+4, BLUE);
+        SET_LED_COLOR(i+5, VIOLET);
     }
-    strip.writeStrip();
+    UPDATE_LED();
 
-    for (j=0; j < strip.numLEDs(); j++) {
+    for (j=0; j < GET_LED_COUNT(); j++) {
         // now set every LED to the *next* LED color (cycling)
-        uint8_t savedcolor = strip.getLEDcolor(0);
-        for (i=1; i < strip.numLEDs(); i++) {
-            strip.setLEDcolor(i-1, strip.getLEDcolor(i));  // move the color back one.
+        uint8_t savedcolor = GET_LED_COLOR(0);
+        for (i=1; i < GET_LED_COUNT(); i++) {
+            SET_LED_COLOR(i-1, GET_LED_COLOR(i));  // move the color back one.
         }
 
         // cycle the first LED back to the last one
-        strip.setLEDcolor(strip.numLEDs()-1, savedcolor);
-        strip.writeStrip();
+        SET_LED_COLOR(GET_LED_COUNT()-1, savedcolor);
+        UPDATE_LED();
         delay(wait);
     }
 }
