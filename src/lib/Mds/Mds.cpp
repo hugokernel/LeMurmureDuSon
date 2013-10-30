@@ -367,6 +367,11 @@ void Mds::ledsColor(uint32_t color) {
     UPDATE_LED();
 }
 
+void Mds::ledsBrightness(uint8_t brightness) {
+    strip.setBrightness(brightness);
+    UPDATE_LED();
+}
+
 void Mds::rainbowParty(uint8_t wait) {
     uint8_t i, j;
 

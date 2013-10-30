@@ -64,29 +64,55 @@ Mds mds(strip, accel);
 
 volatile bool tick = false;
 
-uint8_t pattern_demo[] = {
+uint8_t pattern_demo_rainbow[] = {
     2, 4, 2, 4, 2
 };
+
+uint8_t pattern_demo_fade[] = {
+    2, 3, 2, 3, 2
+};
+
+#define LED_STATUS_ON   ledDelayOn = 0; ledStatus = true;
+#define LED_STATUS_OFF  ledDelayOn = 0; ledStatus = false;
 
 unsigned int ledDelayOn = 0;
 bool ledStatus = false;
 
 void setLed(uint8_t index, uint32_t color) {
+    mds.ledsBrightness(255);
     mds.ledOn(index, color);
-    ledDelayOn = 0;
-    ledStatus = true;
+
+    LED_STATUS_ON
 }
 
 void setLeds(uint32_t color) {
+    mds.ledsBrightness(255);
     mds.ledsColor(color);
-    ledDelayOn = 0;
-    ledStatus = true;
+
+    LED_STATUS_ON
+}
+
+void fadeIn(uint32_t color) {
+    setLeds(color);
+    for (uint8_t c = 1; c < 255; c++) {
+        mds.ledsBrightness(c);
+        delay(2);
+    }
+}
+
+void fadeOut() {
+    for (uint8_t c = 255; c > 0; c--) {
+        mds.ledsBrightness(c);
+        delay(2);
+    }
+    mds.ledsBrightness(0);
+    ledStatus = false;
 }
 
 void ledsOff() {
     mds.ledsOff();
-    ledStatus = false;
-    ledDelayOn = 0;
+
+    LED_STATUS_OFF
 }
 
 void cplay(uint8_t index) {
@@ -114,7 +140,7 @@ void crecord(uint8_t index) {
     Serial.print("Record message #");
     Serial.print(mds.event.current_side);
 
-    //mds.ledOn(Leds[mds.event.current_side], RED);
+    ledsOff();
     setLed(Leds[mds.event.current_side], RED);
 }
 
@@ -127,7 +153,7 @@ void setup()
 {
     Serial.begin(9600);
 
-    delay(1500);
+    //delay(1500);
     sCmd.setDefaultHandler(unrecognized);
     sCmd.addCommand("help",     cmd_help);
     sCmd.addCommand("led",      cmd_led);
@@ -147,8 +173,7 @@ void setup()
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
 
-    strip.setBrightness(255);
-
+/*
     strip.setPixelColor(0, WHITE);
     strip.setPixelColor(1, RED);
     strip.setPixelColor(2, BLUE);
@@ -156,7 +181,7 @@ void setup()
 //    delay(2000);
 
     //while(1);
-
+*/
 /*
     delay(2000);
     PLN("START");
@@ -343,7 +368,7 @@ Serial.print("]");
 
     // Led on ?
     if (ledStatus && ledDelayOn++ > 400) {
-        ledsOff();
+        fadeOut();
     }
 
     // Test battery
@@ -352,14 +377,12 @@ Serial.print("]");
         case BATTERY_STATE_LOW:
             break;
         case BATTERY_STATE_CRITICAL:
-            //mds.ledsOff();
             ledsOff();
             PLN("Charge me !");
             delay(500);
             break;
         case BATTERY_STATE_STOP:
-            //mds.ledsOff();
-            ledsOff();
+            fadeOut();
             PLN("Power down in 2 seconds !");
             delay(2000);
             while(1) {
@@ -377,46 +400,13 @@ Serial.print("]");
 
         if (!lastChargingStatus) {
             if (mds.isCharging() && mds.getBatteryState() <= BATTERY_STATE_LOW) {
-                //mds.ledsColor(RED);
-                setLeds(RED);
+                fadeIn(RED);
             } else {
-                //mds.ledsColor(WHITE);
-                setLeds(WHITE);
+                fadeIn(WHITE);
             }
         }
 
         lastChargingStatus = true;
-
-        //mds.rainbowParty(500);
-        //return;
-        //mds.colorSwirl();
-
-/*
-        strippwm.begin();
-
-        uint8_t j=0;
-        while (mds.isCharging()) {
-            for (uint8_t i=0; i< strip.numLEDs() ; i++) {
-                uint16_t c = Wheel((i+j) % 96);
-                // the 16 bit color we get from Wheel is actually made of 5 bits RGB, we can use bitwise notation to get it out and
-                // convert it to 8 bit
-                strippwm.setLEDcolorPWM(i, (c & 0x1F) << 3, ((c>>10) & 0x1F) << 3, ((c>>5) & 0x1F) << 3);
-            }
-
-            j++;
-            // there's only 96 colors in the 'wheel' so wrap around
-            if (j > 96) {
-                j = 0;
-            }
-
-            delay(100);
-        }
-
-        strippwm.end();
-
-        mds.ledsOff();
-        mds.ledOn(Leds[mds.event.current_side], Colors[mds.event.current_side]);
-*/
 
         // Reset event
         //mds.event.processed = false;
@@ -424,8 +414,7 @@ Serial.print("]");
     } else {
         // If last time, charger is in progress
         if (lastChargingStatus) {
-            //mds.ledsOff();
-            ledsOff();
+            fadeOut();
         }
 
         lastChargingStatus = false;
@@ -463,6 +452,7 @@ Serial.print("]");
 
                 mds.stop();
             } else {
+
                 mds.record(mds.event.current_side);
 
                 // 6 seconds later, stop !
@@ -516,10 +506,7 @@ Serial.print("shaked");
     }
 
     // Test pattern
-    if (mds.testPath(pattern_demo, sizeof(pattern_demo))) {
-        //PLN("Found demo pattern !");
-        //delay(1000);
-        //cmd_demo();
+    if (mds.testPath(pattern_demo_rainbow, sizeof(pattern_demo_rainbow))) {
 
         for (int i = 0; i < 10; i++) {
             mds.vibrate(50);
@@ -527,9 +514,18 @@ Serial.print("shaked");
         }
 
         memset(mds.path, 0x00, sizeof(mds.path));
-        //mds.ledsColor(WHITE);
-        setLeds(WHITE);
+        fadeIn(WHITE);
+    } else if (mds.testPath(pattern_demo_fade, sizeof(pattern_demo_fade))) {
+
+        for (int i = 0; i < sizeof(Colors) / sizeof(WHITE); i++) {
+            fadeOut();
+            fadeIn(Colors[i]);
+        }
+
+        memset(mds.path, 0x00, sizeof(mds.path));
+        fadeIn(WHITE);
     }
+
 
 lesgotocaimal:
     tick = false;
@@ -613,13 +609,12 @@ void cmd_led() {
             color = atoi(arg);
             if (index < 0 || index >= sizeof(Colors)) {
                 PLN("Color range : 0...5");
+            return;
             }
 
             P(" to color ");
             P(color);
 
-            //mds.ledsOff();
-            //mds.ledOn(Leds[index], Colors[color]);
             setLed(Leds[index], Colors[color]);
 
             PLN("");
@@ -629,6 +624,7 @@ void cmd_led() {
         color = atoi(arg);
         if (index < 0 || index >= sizeof(Colors)) {
             PLN("Color range : 0...5");
+            return;
         }
 
         P("Set all led to color ");
@@ -639,9 +635,37 @@ void cmd_led() {
 
         PLN("");
     } else if (!strcmp(arg, "off")) {
-        //mds.ledsOff();
-        ledsOff();
+        
+        fadeOut();
         PLN("Leds off !");
+
+    } else if (!strcmp(arg, "fade")) {
+       
+        P("Fade leds ");
+        P(index);
+
+        arg = sCmd.next();
+        color = atoi(arg);
+        if (index < 0 || index >= sizeof(Colors)) {
+            PLN("Color range : 0...5");
+            return;
+        }
+
+        P(" to color ");
+        PLN(color);
+
+        fadeOut();
+        fadeIn(Colors[color]);
+
+    } else if (!strcmp(arg, "bright")) {
+        arg = sCmd.next();
+        color = atoi(arg);
+
+        P("Set leds brightness to ");
+        PLN(color);
+
+        mds.ledsBrightness(color);
+
     } else if (!strcmp(arg, "map")) {
 
         arg = sCmd.next();
@@ -935,13 +959,42 @@ void magnetometerDump()
 }
 
 void cmd_demo() {
-    while (true) {
-        mds.rainbowParty(500);
+    uint8_t index = 0;
+    uint8_t c = 1;
+    uint8_t upper = true;
+    char *arg;
+    arg = sCmd.next();
+    index = atoi(arg);
 
-        while (Serial.available() > 0) {
-            if (Serial.read()) {
-                return;
+    if (index == 0) {
+        //PLN("RainbowParty demo");
+        while (true) {
+            mds.rainbowParty(500);
+
+            while (Serial.available() > 0) {
+                if (Serial.read()) {
+                    return;
+                }
             }
+        }
+    } else if (index == 1) {
+        //PLN("Brightness demo");
+        mds.ledsColor(WHITE);
+
+        while (true) {
+            mds.ledsBrightness(c);
+            delay(5);
+
+            while (Serial.available() > 0) {
+                if (Serial.read()) {
+                    return;
+                }
+            }
+
+            if ((!upper && c == 1) || c == 255) {
+                upper = !upper;
+            }
+            c = (upper) ? c + 1 : c - 1;
         }
     }
 

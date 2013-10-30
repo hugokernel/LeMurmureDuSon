@@ -302,6 +302,8 @@ public:
 
     void ledsColor(uint32_t);
 
+    void ledsBrightness(uint8_t);
+
     void rainbowParty(uint8_t);
 
     // Sensor

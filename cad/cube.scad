@@ -9,7 +9,7 @@ RIDGE_WIDTH = 8;
 
 THICKNESS = 3;
 
-HOLE_DIAMETER = 2 + .5;
+HOLE_DIAMETER = 2 + .1;
 
 ELEC_WIDTH = 42.3;
 ELEC_LENGTH = 40;
@@ -321,7 +321,7 @@ module front(index, connection) {
 
     module _charger() {
         rotate([0, 0, -45]) {
-            translate([22, 0, 7.8]) {
+            translate([22, 0, 8.5]) {
                 scale([1.1, 1.1, 1]) {
                     charger();
                 }
@@ -384,8 +384,8 @@ module front(index, connection) {
 
     module reflector(fill = false) {
         edge_thickness = 0.2;
-        hole_width = 5.8;
-        size = ((SIZE - RIDGE_WIDTH * 2) / 2) * sqrt(2) + 2;
+        hole_width = 5.4;
+        size = ((SIZE - RIDGE_WIDTH * 2) / 2) * sqrt(2) + 10;
 
         if (fill) {
             translate([0, 0, 1.3]) {
@@ -419,15 +419,20 @@ module front(index, connection) {
     }
 
     module holes_top() {
-        rotate([0, 0, 45]) {
-            for(pos = [
-                [SIZE / 2 - RIDGE_WIDTH - 2, SIZE / 2 - RIDGE_WIDTH / 2, 0],
-                [-SIZE / 2 + RIDGE_WIDTH + 2, SIZE / 2 - RIDGE_WIDTH / 2, 0],
-                [SIZE / 2 - RIDGE_WIDTH - 2, -SIZE / 2 + RIDGE_WIDTH / 2, 0],
-                [-SIZE / 2 + RIDGE_WIDTH + 2, -SIZE / 2 + RIDGE_WIDTH / 2, 0],
-            ]) {
-                translate(pos) {
-                    cylinder(r = HOLE_DIAMETER / 2, h = 50, center = true);
+        for (rot = [
+            [ 0, 0, 45 ],
+            [ 0, 0, 45 + 90 ]
+        ]) {
+            rotate(rot) {
+                for(pos = [
+                    [SIZE / 2 - RIDGE_WIDTH - 2, SIZE / 2 - RIDGE_WIDTH / 2, 0],
+                    [-SIZE / 2 + RIDGE_WIDTH + 2, SIZE / 2 - RIDGE_WIDTH / 2, 0],
+                    [SIZE / 2 - RIDGE_WIDTH - 2, -SIZE / 2 + RIDGE_WIDTH / 2, 0],
+                    [-SIZE / 2 + RIDGE_WIDTH + 2, -SIZE / 2 + RIDGE_WIDTH / 2, 0],
+                ]) {
+                    translate(pos) {
+                        cylinder(r = HOLE_DIAMETER / 2, h = 50, center = true);
+                    }
                 }
             }
         }
@@ -455,6 +460,16 @@ module front(index, connection) {
                     cylinder(r = diameter / 2, h = 2, center = true, $fn = 3);
 //                translate([- SIZE / 2 + i * diameter * 2, SIZE / 2 - RIDGE_WIDTH / 2 + 3, 0]) {
                     //cube(size = [3, 2, 1]);
+                }
+            }
+        }
+    }
+
+    module speaker_hole() {
+        for (x = [0 : 5 : 18]) {
+            for (y = [0 : 5 : 20]) {
+                translate([x, y, 0]) {
+                    cylinder(r = 1.3, h = 50);
                 }
             }
         }
@@ -492,8 +507,17 @@ module front(index, connection) {
         }
 
         // Top holes
-        if (index == 0 || index == 1) {
+        if (index == 0) {
             holes_top();
+        }
+
+        if (index == 1) {
+            holes_top();
+
+            // Mic hole
+            translate([15, 15, 0]) {
+                cylinder(r = 5, h = 20);
+            }
         }
 
         if (index == 2) {
@@ -506,6 +530,14 @@ module front(index, connection) {
 
         if (index) {
             mark(index);
+        }
+
+        if (index == 5) {
+            rotate([0, 0, 45]) {
+                translate([-26, -10, 0]) {
+                    speaker_hole();
+                }
+            }
         }
     }
 
@@ -704,7 +736,7 @@ module base() {
     //enveloppe();
 }
 
-if (1) {
+if (0) {
 
     //main(-1, 0);
     //faces(-1, 5);
@@ -715,11 +747,11 @@ if (1) {
 
 } else {
 
-    if (0) {
-        getside(0);
+    if (1) {
+        getside(4);
     } else {
-        //getsides([0, 2, 4], 0);
-        support();
+        getsides([0, 2, 5], 0);
+        //support();
     }
 
 /*
