@@ -4,6 +4,15 @@ $fn = 20;
 SIZE = 76;
 THICKNESS = 1;
 
+sizes = [
+    [ 76.3, 76.5 ],     // 0
+    [ 76.5, 76.2 ],     // 1
+    [ 77.94, 77.94 ],   // 2
+    [ 77.94, 77.94 ],   // 3
+    [ 77.94, 76 ],      // 4
+    [ 77.94, 76 ],      // 5
+];
+
 RIDGE_WIDTH = 8;
 HOLE_DIAMETER = 2 + .5;
 
@@ -29,14 +38,12 @@ module holes() {
 }
 
 module bump(index, size = SIZE, thick = THICKNESS) {
-    //stl_width = 473;
     stl_width = 300;
     stl_thickness = 10;
-    //coeff = stl_width / size;
     thickness = 1;
 
-    coeff_w = stl_width / size;
-    coeff_l = stl_width / size;
+    coeff_w = stl_width / sizes[index][0];
+    coeff_l = stl_width / sizes[index][1];
     coeff_t = stl_thickness / thick;
 
     translate([stl_width / coeff_w / 2, stl_width / coeff_l / 2, thickness / 2]) {
@@ -45,45 +52,13 @@ module bump(index, size = SIZE, thick = THICKNESS) {
         }
     }
 
-/*
-        difference() {
-            translate([0, 0, 0.5]) {
-                cube(size = [size + thickness, size + thickness, 1], center = true);
-            }
-
-            translate([SIZE / 2 + 1.2, 0, 0.5]) {
-                rotate([0, -45, 0]) {
-                    cube(size = [3, size * 2, 1], center = true);
-                }
-            }
-
-            translate([-SIZE / 2 - 1.2, 0, 0.5]) {
-                rotate([0, 45, 0]) {
-                    cube(size = [3, size * 2, 1], center = true);
-                }
-            }
-
-            translate([0, SIZE / 2 + 1.2, 0.5]) {
-                rotate([0, -45, 90]) {
-                    cube(size = [3, size * 2, 1], center = true);
-                }
-            }
-
-            translate([0, -SIZE / 2 - 1.2, 0.5]) {
-                rotate([0, -45, -90]) {
-                    cube(size = [3, size * 2, 1], center = true);
-                }
-            }
-    }
-            */
-
     if (index == 5) {
         translate([0, 0, thickness / 2 - 0.4]) {
-            cube(size = [size, size, 0.2], center = true);
+            cube(size = [sizes[index][0], sizes[index][1], 0.2], center = true);
         }
     } else {
         translate([0, 0, thickness / 2 - 0.5]) {
-            cube(size = [size, size, 1], center = true);
+            cube(size = [sizes[index][0], sizes[index][1], 1], center = true);
         }
     }
 }
@@ -129,6 +104,13 @@ module faces(which = -1, offset = 30) {
                 }
             }
         }
+    
+        if (which == 1) {
+            // Mic hole
+            translate([0, -20, 0]) {
+                cylinder(r = 2, h = 200);
+            }
+        }
     }
 }
 
@@ -136,5 +118,6 @@ module faces(which = -1, offset = 30) {
 
 %cube(size = [SIZE, SIZE, SIZE], center = true);
 
-faces(4, 0);
+faces(3, 0);
+
 

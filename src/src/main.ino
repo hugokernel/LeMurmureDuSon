@@ -49,6 +49,9 @@ uint32_t Colors[] = {
 extern uint8_t Messages[8];
 //extern uint8_t Sides[6];
 
+#define MSG_HELLO      6 
+#define MSG_CHARGE_OK  7
+
 extern uint8_t Leds[6];
 
 void cmd_led();
@@ -118,7 +121,7 @@ void ledsOff() {
 void cplay(uint8_t index) {
     //Serial.print(mds.position.largest);
     P("Play message #");
-    PLN(mds.event.current_side);
+    PLN(index);
 
     //mds.ledsColor(WHITE);
     setLeds(WHITE);
@@ -126,22 +129,16 @@ void cplay(uint8_t index) {
     // Side led on, play !
     //mds.ledOn(Leds[mds.event.current_side], Colors[mds.event.current_side]);
     //mds.ledOn(Leds[mds.event.current_side], BLUE);
-    setLed(Leds[mds.event.current_side], BLUE);
+    setLed(Leds[index], BLUE);
 }
 
 void crecord(uint8_t index) {
-    mds.vibrate(150);
-    delay(500);
-    mds.vibrate(150);
-    delay(500);
-    mds.vibrate(150);
-    delay(500);
-
-    Serial.print("Record message #");
-    Serial.print(mds.event.current_side);
-
     ledsOff();
-    setLed(Leds[mds.event.current_side], RED);
+
+    if (index < LED_COUNT) {
+        setLed(Leds[index], RED);
+//        mds.ledsBrightness(5);
+    }
 }
 
 void cstop() {
@@ -261,6 +258,9 @@ void setup()
     TIMSK1 |= (1 << TOIE1); // enable timer overflow interrupt
 
     interrupts(); // enable all interrupts
+
+    mds.play(MSG_HELLO);
+    delay(2000);
 }
 
 ISR(TIMER1_OVF_vect)
@@ -273,50 +273,29 @@ ISR(TIMER1_OVF_vect)
     tick = true;
 }
 
-/************************** Pixel routine */
-// this code is from http://www.bliptronics.com Ben Moyes's example code for LEDs, check them out!
-/*
-// Create a 15 bit color value from R,G,B
-unsigned int Color(byte r, byte g, byte b)
-{
-  //Take the lowest 5 bits of each value and append them end to end
-  return( ((unsigned int)g & 0x1F )<<10 | ((unsigned int)b & 0x1F)<<5 | (unsigned int)r & 0x1F);
-}
-
-
-//Input a value 0 to 127 to get a color value.
-//The colours are a transition r - g -b - back to r
-unsigned int Wheel(byte WheelPos)
-{
-  byte r,g,b;
-  switch(WheelPos >> 5)
-  {
-    case 0:
-      r=31- WheelPos % 32;   //Red down
-      g=WheelPos % 32;      // Green up
-      b=0;                  //blue off
-      break;
-    case 1:
-      g=31- WheelPos % 32;  //green down
-      b=WheelPos % 32;      //blue up
-      r=0;                  //red off
-      break;
-    case 2:
-      b=31- WheelPos % 32;  //blue down
-      r=WheelPos % 32;      //red up
-      g=0;                  //green off
-      break;
-  }
-  return(Color(r,g,b));
-}
-*/
-
 double data[10];
 uint8_t data_index = 0;
 double result = 0;
-bool lastChargingStatus = false;
 
+bool lastChargingStatus = false;
+uint8_t statusWhenStandOnCharger = BATTERY_STATE_UNKNOW;
+
+
+int x, y, z;
 void loop() {
+
+/*
+    mds.accel.setRangeSetting(2);
+    mds.accel.readAccel(&x, &y, &z);
+    Serial.print("XYZ COUNTS: ");
+    Serial.print(x, DEC);
+    Serial.print(" ");
+    Serial.print(y, DEC);
+    Serial.print(" ");
+    Serial.print(z, DEC);
+    Serial.println(".");
+*/
+
 
     //static bool chargingHandled = false;
 
@@ -398,8 +377,12 @@ Serial.print("]");
 
     if (mds.isOnCharger()) {
 
+        // Cube just be on the charger
         if (!lastChargingStatus) {
-            if (mds.isCharging() && mds.getBatteryState() <= BATTERY_STATE_LOW) {
+            statusWhenStandOnCharger = mds.getBatteryState();
+            P("Cube just be on charger, status : ");
+            PLN(statusWhenStandOnCharger);
+            if (mds.isCharging() && statusWhenStandOnCharger <= BATTERY_STATE_LOW) {
                 fadeIn(RED);
             } else {
                 fadeIn(WHITE);
@@ -415,6 +398,10 @@ Serial.print("]");
         // If last time, charger is in progress
         if (lastChargingStatus) {
             fadeOut();
+
+            if (statusWhenStandOnCharger < BATTERY_STATE_FULL) { 
+                mds.play(MSG_CHARGE_OK);
+            }
         }
 
         lastChargingStatus = false;
@@ -452,6 +439,16 @@ Serial.print("]");
 
                 mds.stop();
             } else {
+
+                mds.vibrate(150);
+                delay(500);
+                mds.vibrate(150);
+                delay(500);
+                mds.vibrate(150);
+                delay(500);
+
+                Serial.print("Record message #");
+                Serial.print(mds.event.current_side);
 
                 mds.record(mds.event.current_side);
 
@@ -566,29 +563,6 @@ lesgotocaimal:
     }
 
     //delay(500);
-*/
-
-/*
-    mds.accel.readAccel(&x, &y, &z);
-    Serial.print("XYZ COUNTS: ");
-    Serial.print(x, DEC);
-    Serial.print(" ");
-    Serial.print(y, DEC);
-    Serial.print(" ");
-    Serial.print(z, DEC);
-    Serial.print(".");
-*/
-
-/*
-    Serial.print("XYZ Gs: ");
-    for(i = 0; i<3; i++){
-        Serial.print(mds.xyz[i], DEC);
-        Serial.print(" ");
-    }
-    Serial.println("");
-    //Serial.println(findPositionLargest(xyz, 3), DEC);
-
-    absValue = getHigher(mds.xyz, index, sign);
 */
 
 void cmd_led() {
@@ -825,17 +799,24 @@ void cmd_info() {
 
     while (true) {
 
-        while (Serial.available() > 0) {
-            if (Serial.read()) {
-                return;
-            }
+        if (Serial.read() == 13) {
+            break;
         }
+        /*
+        //while (Serial.available() > 0) {
+            if (Serial.read() == '\n') {
+                break;
+                //return;
+            }
+        //}
+        */
 
         PLN("[Power]");
-        P(" Battery voltage : ");
-        PLN(mds.getBatteryVoltage());
+        P(" Battery : ");
+        P(mds.getBatteryVoltage());
+        PLN("V");
 
-        P(" Battery status : ");
+        P(" Status  : ");
         switch (mds.getBatteryState()) {
             case BATTERY_STATE_FULL:
                 PLN("Full");
@@ -851,7 +832,7 @@ void cmd_info() {
                 break;
         }
 
-        P(" Charge : ");
+        P(" Charge  : ");
         if (mds.isOnCharger()) {
             if (!mds.isCharging()) {
                 PLN("Standby");
@@ -869,8 +850,9 @@ void cmd_info() {
             PLN("False");
         }
 
-        P(" Charger voltage : ");
-        PLN(mds.getChargerVoltage());
+        P(" Charger : ");
+        P(mds.getChargerVoltage());
+        PLN("V");
 
         MagnetometerRaw raw = mds.compass.ReadRawAxis();
         heading = atan2(raw.YAxis, raw.XAxis);
@@ -895,14 +877,14 @@ void cmd_info() {
 */
 
         accel.get_Gxyz(data);
-        P(" Accelerometer x:");
+        P(" Accel x:");
         P(data[0]);
         P(", y:");
         P(data[1]);
         P(", z:");
         PLN(data[2]);
 
-        P(" Temperature : ");
+        P(" Temp : ");
         PLN(mds.getTemperature());
 
         PLN("--");

@@ -36,6 +36,8 @@
 #define VIOLET  Adafruit_NeoPixel::Color(102, 51, 153)
 
 #define STRIP   13
+
+#define MAX_BRIGHTNESS 128
 #endif
 
 //#define VERSION_06
@@ -103,6 +105,7 @@
 #define BATTERY_LEVEL_CRITICAL  BATTERY_LEVEL(3.1)
 #define BATTERY_LEVEL_STOP      BATTERY_LEVEL(3.0)
 
+#define BATTERY_STATE_UNKNOW    10
 #define BATTERY_STATE_FULL      3
 #define BATTERY_STATE_LOW       2
 #define BATTERY_STATE_CRITICAL  1

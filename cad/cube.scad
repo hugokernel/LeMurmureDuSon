@@ -747,10 +747,10 @@ if (0) {
 
 } else {
 
-    if (1) {
+    if (0) {
         getside(4);
     } else {
-        getsides([0, 2, 5], 0);
+        getsides([2, 3], 0);
         //support();
     }
 

@@ -14,15 +14,34 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 void setup() {
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+rainbow(1);
 }
 
+unsigned char i = 1;
 void loop() {
+  /*
   // Some example procedures showing how to display to the pixels:
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  colorWipe(strip.Color(0, 255, 0), 50); // Green
-  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-  rainbow(20);
-  rainbowCycle(20);
+  colorWipe(strip.Color(255, 0, 0), 1); // Red
+  colorWipe(strip.Color(0, 255, 0), 1); // Green
+  colorWipe(strip.Color(0, 0, 255), 1); // Blue
+  rainbow(1);
+  rainbowCycle(1);
+*/
+  for (i = 1; i < 255; i++) {
+    strip.setBrightness(i);
+    strip.show();
+    delay(10);
+  }
+
+  for (i = 255; i > 1; i--) {
+    strip.setBrightness(i);
+    strip.show();
+    delay(10);
+  }
+  
+  //Serial.println(i);
+  //if (!i)
+  //  i++;
 }
 
 // Fill the dots one after the other with a color

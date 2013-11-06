@@ -92,6 +92,28 @@ void Mds::init(void) {
     UP(REC_PLAY);
 
     accel.powerOn();
+
+ /*
+    accel.setRangeSetting(2);
+    accel.setTapThreshold(0x40);
+    accel.setTapDuration(0x30);
+    accel.setDoubleTapLatency(0x40);
+    accel.setDoubleTapWindow(0xFF);
+    accel.setTapDetectionOnX(true);
+    accel.setTapDetectionOnY(true);
+    accel.setTapDetectionOnZ(true);
+    accel.setInterrupt(1, true);
+    accel.setInterruptMapping(1, true);
+
+    accel.setAxisOffset(2, 3, 4);
+    accel.setActivityThreshold(48);
+    accel.setTapDuration(0x30);
+
+    accel.setActivityX(true);
+    accel.setActivityY(true);
+    accel.setActivityZ(true);
+*/
+
     compass = HMC5883L();
 
 #ifdef VERSION_08
@@ -111,28 +133,6 @@ void Mds::init(void) {
     analogReference(INTERNAL);
 
     _mute = false;
-
- /*
-    //accel.setRangeSetting(2);
-
-    accel.setTapThreshold(0x40);
-    accel.setTapDuration(0x30);
-    accel.setDoubleTapLatency(0x40);
-    accel.setDoubleTapWindow(0xFF);
-    accel.setTapDetectionOnX(true);
-    accel.setTapDetectionOnY(true);
-    accel.setTapDetectionOnZ(true);
-    accel.setInterrupt(1, true);
-    accel.setInterruptMapping(1, true);
-
-    accel.setAxisOffset(2, 3, 4);
-    accel.setActivityThreshold(48);
-    accel.setTapDuration(0x30);
-
-    accel.setActivityX(true);
-    accel.setActivityY(true);
-    accel.setActivityZ(true);
-*/
 }
 
 /**
@@ -200,6 +200,8 @@ uint8_t Mds::getBatteryState() {
     if (vbat >= BATTERY_LEVEL_STOP) {
         return BATTERY_STATE_STOP;
     }
+
+    return BATTERY_STATE_UNKNOW;
 }
 
 double Mds::getChargerVoltage() {
@@ -368,7 +370,7 @@ void Mds::ledsColor(uint32_t color) {
 }
 
 void Mds::ledsBrightness(uint8_t brightness) {
-    strip.setBrightness(brightness);
+    strip.setBrightness(min(MAX_BRIGHTNESS, brightness));
     UPDATE_LED();
 }
 
@@ -534,6 +536,8 @@ uint8_t Mds::getUpWardlySide(void) {
 
 void Mds::processAccel() {
     accel.get_Gxyz(position.xyz);
+
+//    position.z = -10;
 /*
 Serial.print("XYZ COUNTS: ");
 Serial.print(position.xyz[0], DEC);
