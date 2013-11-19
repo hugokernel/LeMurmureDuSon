@@ -20173,8 +20173,8 @@ when LIPO = 4.5V</text>
 <instance part="P+13" gate="VCC" x="127" y="142.24" smashed="yes">
 <attribute name="VALUE" x="129.54" y="144.78" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="P+15" gate="VCC" x="40.64" y="142.24" smashed="yes">
-<attribute name="VALUE" x="43.18" y="144.78" size="1.778" layer="96" rot="R180"/>
+<instance part="P+15" gate="VCC" x="53.34" y="142.24" smashed="yes">
+<attribute name="VALUE" x="55.88" y="144.78" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="P+16" gate="VCC" x="58.42" y="111.76" smashed="yes">
 <attribute name="VALUE" x="60.96" y="114.3" size="1.778" layer="96" rot="R180"/>
@@ -20182,14 +20182,14 @@ when LIPO = 4.5V</text>
 <instance part="P+17" gate="VCC" x="86.36" y="139.7" smashed="yes">
 <attribute name="VALUE" x="88.9" y="142.24" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="R8" gate="G$1" x="40.64" y="132.08" rot="R90"/>
+<instance part="R8" gate="G$1" x="53.34" y="132.08" rot="R90"/>
 <instance part="R6" gate="G$1" x="213.36" y="25.4" rot="R90"/>
 <instance part="GND2" gate="1" x="213.36" y="15.24"/>
 <instance part="R3" gate="G$1" x="254" y="83.82" rot="R90"/>
 <instance part="R4" gate="G$1" x="254" y="60.96" rot="R90"/>
 <instance part="R2" gate="G$1" x="254" y="104.14" rot="R90"/>
 <instance part="GND13" gate="1" x="33.02" y="213.36"/>
-<instance part="C11" gate="G$1" x="30.48" y="124.46" rot="R90"/>
+<instance part="C11" gate="G$1" x="45.72" y="124.46" rot="R90"/>
 <instance part="C15" gate="G$1" x="35.56" y="83.82" rot="R180"/>
 <instance part="C12" gate="G$1" x="86.36" y="129.54" rot="R180"/>
 <instance part="IC1" gate="G$1" x="81.28" y="220.98"/>
@@ -20235,13 +20235,13 @@ when LIPO = 4.5V</text>
 <instance part="GND5" gate="1" x="162.56" y="109.22"/>
 <instance part="GND7" gate="1" x="187.96" y="109.22"/>
 <instance part="GND9" gate="1" x="213.36" y="109.22"/>
-<instance part="C19" gate="G$1" x="238.76" y="81.28" smashed="yes">
-<attribute name="NAME" x="240.284" y="81.661" size="1.778" layer="95"/>
-<attribute name="VALUE" x="240.284" y="76.581" size="1.778" layer="96"/>
+<instance part="C19" gate="G$1" x="243.84" y="76.2" smashed="yes" rot="R90">
+<attribute name="NAME" x="243.459" y="77.724" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="248.539" y="77.724" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="C20" gate="G$1" x="238.76" y="66.04" smashed="yes">
-<attribute name="NAME" x="240.284" y="66.421" size="1.778" layer="95"/>
-<attribute name="VALUE" x="240.284" y="61.341" size="1.778" layer="96"/>
+<instance part="C20" gate="G$1" x="246.38" y="68.58" smashed="yes" rot="R270">
+<attribute name="NAME" x="246.761" y="67.056" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="241.681" y="67.056" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="C8" gate="G$1" x="264.16" y="88.9" smashed="yes" rot="R180">
 <attribute name="NAME" x="270.256" y="93.599" size="1.778" layer="95" rot="R180"/>
@@ -20277,13 +20277,13 @@ when LIPO = 4.5V</text>
 <instance part="P+23" gate="VCC" x="93.98" y="243.84" smashed="yes">
 <attribute name="VALUE" x="96.52" y="246.38" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="MIC+" gate="P" x="261.62" y="73.66" smashed="yes" rot="R180">
-<attribute name="NAME" x="270.383" y="74.3458" size="1.778" layer="95" rot="R180"/>
-<attribute name="VALUE" x="262.763" y="76.962" size="1.778" layer="96" rot="R180"/>
+<instance part="MIC+" gate="P" x="261.62" y="76.2" smashed="yes" rot="R180">
+<attribute name="NAME" x="270.383" y="76.8858" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="262.763" y="79.502" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="MIC-" gate="P" x="261.62" y="71.12" smashed="yes" rot="R180">
-<attribute name="NAME" x="270.383" y="71.8058" size="1.778" layer="95" rot="R180"/>
-<attribute name="VALUE" x="262.763" y="74.422" size="1.778" layer="96" rot="R180"/>
+<instance part="MIC-" gate="P" x="261.62" y="68.58" smashed="yes" rot="R180">
+<attribute name="NAME" x="270.383" y="69.2658" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="262.763" y="71.882" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="SP+" gate="P" x="182.88" y="96.52" smashed="yes">
 <attribute name="NAME" x="174.117" y="95.8342" size="1.778" layer="95"/>
@@ -20599,10 +20599,10 @@ when LIPO = 4.5V</text>
 </net>
 <net name="MIC+" class="0">
 <segment>
-<wire x1="238.76" y1="83.82" x2="238.76" y2="86.36" width="0.1524" layer="91"/>
-<wire x1="238.76" y1="86.36" x2="231.14" y2="86.36" width="0.1524" layer="91"/>
-<label x="231.14" y="86.36" size="1.778" layer="95"/>
+<wire x1="241.3" y1="76.2" x2="238.76" y2="76.2" width="0.1524" layer="91"/>
+<label x="233.68" y="76.2" size="1.778" layer="95"/>
 <pinref part="C19" gate="G$1" pin="1"/>
+<junction x="238.76" y="76.2"/>
 </segment>
 <segment>
 <pinref part="U2" gate="G$1" pin="MIC+"/>
@@ -20613,10 +20613,10 @@ when LIPO = 4.5V</text>
 </net>
 <net name="MIC-" class="0">
 <segment>
-<wire x1="238.76" y1="60.96" x2="238.76" y2="58.42" width="0.1524" layer="91"/>
-<wire x1="238.76" y1="58.42" x2="231.14" y2="58.42" width="0.1524" layer="91"/>
-<label x="231.14" y="58.42" size="1.778" layer="95"/>
+<wire x1="241.3" y1="68.58" x2="238.76" y2="68.58" width="0.1524" layer="91"/>
+<label x="233.68" y="68.58" size="1.778" layer="95"/>
 <pinref part="C20" gate="G$1" pin="2"/>
+<junction x="238.76" y="68.58"/>
 </segment>
 <segment>
 <pinref part="U2" gate="G$1" pin="MIC-"/>
@@ -20673,8 +20673,9 @@ when LIPO = 4.5V</text>
 <segment>
 <wire x1="254" y1="55.88" x2="254" y2="53.34" width="0.1524" layer="91"/>
 <wire x1="254" y1="53.34" x2="246.38" y2="53.34" width="0.1524" layer="91"/>
-<label x="246.38" y="53.34" size="1.778" layer="95"/>
+<label x="241.3" y="53.34" size="1.778" layer="95"/>
 <pinref part="R4" gate="G$1" pin="1"/>
+<junction x="246.38" y="53.34"/>
 </segment>
 <segment>
 <pinref part="U2" gate="G$1" pin="_LED"/>
@@ -20691,11 +20692,10 @@ when LIPO = 4.5V</text>
 </net>
 <net name="N$2" class="0">
 <segment>
-<wire x1="259.08" y1="73.66" x2="254" y2="73.66" width="0.1524" layer="91"/>
-<wire x1="254" y1="73.66" x2="254" y2="78.74" width="0.1524" layer="91"/>
-<wire x1="254" y1="73.66" x2="238.76" y2="73.66" width="0.1524" layer="91"/>
-<wire x1="238.76" y1="73.66" x2="238.76" y2="76.2" width="0.1524" layer="91"/>
-<junction x="254" y="73.66"/>
+<wire x1="259.08" y1="76.2" x2="254" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="254" y1="76.2" x2="254" y2="78.74" width="0.1524" layer="91"/>
+<wire x1="254" y1="76.2" x2="248.92" y2="76.2" width="0.1524" layer="91"/>
+<junction x="254" y="76.2"/>
 <pinref part="R3" gate="G$1" pin="1"/>
 <pinref part="C19" gate="G$1" pin="2"/>
 <pinref part="MIC+" gate="P" pin="P"/>
@@ -20703,11 +20703,10 @@ when LIPO = 4.5V</text>
 </net>
 <net name="N$3" class="0">
 <segment>
-<wire x1="259.08" y1="71.12" x2="254" y2="71.12" width="0.1524" layer="91"/>
-<wire x1="254" y1="71.12" x2="254" y2="66.04" width="0.1524" layer="91"/>
-<wire x1="254" y1="71.12" x2="238.76" y2="71.12" width="0.1524" layer="91"/>
-<wire x1="238.76" y1="71.12" x2="238.76" y2="68.58" width="0.1524" layer="91"/>
-<junction x="254" y="71.12"/>
+<wire x1="259.08" y1="68.58" x2="254" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="254" y1="68.58" x2="254" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="254" y1="68.58" x2="248.92" y2="68.58" width="0.1524" layer="91"/>
+<junction x="254" y="68.58"/>
 <pinref part="R4" gate="G$1" pin="2"/>
 <pinref part="C20" gate="G$1" pin="1"/>
 <pinref part="MIC-" gate="P" pin="P"/>
@@ -20774,7 +20773,7 @@ when LIPO = 4.5V</text>
 <pinref part="R2" gate="G$1" pin="2"/>
 </segment>
 <segment>
-<wire x1="40.64" y1="139.7" x2="40.64" y2="137.16" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="139.7" x2="53.34" y2="137.16" width="0.1524" layer="91"/>
 <pinref part="P+15" gate="VCC" pin="VCC"/>
 <pinref part="R8" gate="G$1" pin="2"/>
 </segment>
@@ -21056,9 +21055,10 @@ when LIPO = 4.5V</text>
 <pinref part="BL" gate="G$1" pin="DTR"/>
 </segment>
 <segment>
-<wire x1="27.94" y1="124.46" x2="20.32" y2="124.46" width="0.1524" layer="91"/>
-<label x="20.32" y="124.46" size="1.778" layer="95"/>
+<wire x1="43.18" y1="124.46" x2="40.64" y2="124.46" width="0.1524" layer="91"/>
+<label x="33.02" y="124.46" size="1.778" layer="95"/>
 <pinref part="C11" gate="G$1" pin="1"/>
+<junction x="40.64" y="124.46"/>
 </segment>
 </net>
 <net name="RXI" class="0">
@@ -21314,10 +21314,9 @@ when LIPO = 4.5V</text>
 <segment>
 <wire x1="60.96" y1="106.68" x2="53.34" y2="106.68" width="0.1524" layer="91"/>
 <wire x1="53.34" y1="106.68" x2="53.34" y2="124.46" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="124.46" x2="40.64" y2="124.46" width="0.1524" layer="91"/>
-<wire x1="40.64" y1="127" x2="40.64" y2="124.46" width="0.1524" layer="91"/>
-<wire x1="40.64" y1="124.46" x2="35.56" y2="124.46" width="0.1524" layer="91"/>
-<junction x="40.64" y="124.46"/>
+<wire x1="53.34" y1="127" x2="53.34" y2="124.46" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="124.46" x2="50.8" y2="124.46" width="0.1524" layer="91"/>
+<junction x="53.34" y="124.46"/>
 <pinref part="U5" gate="G$1" pin="PC6(/RESET)"/>
 <pinref part="R8" gate="G$1" pin="1"/>
 <pinref part="C11" gate="G$1" pin="2"/>
