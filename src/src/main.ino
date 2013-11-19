@@ -364,6 +364,10 @@ Serial.print("]");
             fadeOut();
             PLN("Power down in 2 seconds !");
             delay(2000);
+            PLN("Suicide !");
+            POWER_OFF;
+            return;
+            /*
             while(1) {
                 P("Power down");
                 delay(1000);
@@ -373,6 +377,7 @@ Serial.print("]");
             sleep_enable();
             //sleep_bod_disable();
             return;
+            */
     }
 
     if (mds.isOnCharger()) {

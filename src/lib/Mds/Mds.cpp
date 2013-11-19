@@ -120,6 +120,11 @@ void Mds::init(void) {
     DDRB |= (1 << DDB6);    // OUTPUT
     DDRB &= ~(1 << DDB7);   // INPUT
     PORTB &= ~(1 << PORTB6);
+
+    // Power on
+    pinMode(PWR_CMD, OUTPUT);
+
+    POWER_ON
 #else
     pinMode(VIBRATOR, OUTPUT);
     DOWN(VIBRATOR);

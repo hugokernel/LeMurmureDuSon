@@ -49,9 +49,7 @@
 
 #ifdef VERSION_06
 #define VIBRATOR A1     // PC1
-#endif
 
-#ifdef VERSION_06
 #define M1 A2
 #define M2 A3
 #define M3 20 // PB6
@@ -69,6 +67,11 @@
 #define M6 7
 #define M7 6
 #define M8 5
+
+#define PWR_CMD 9
+
+#define POWER_ON    DOWN(PWR_CMD);
+#define POWER_OFF   UP(PWR_CMD);
 #endif
 
 #define CHG 3
