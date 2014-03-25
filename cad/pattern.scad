@@ -118,6 +118,6 @@ module faces(which = -1, offset = 30) {
 
 %cube(size = [SIZE, SIZE, SIZE], center = true);
 
-faces(3, 0);
+faces(4, 0);
 
 

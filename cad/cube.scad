@@ -316,7 +316,11 @@ module support() {
     }
 }
 
-module front(index, connection) {
+NOTHING = -1;
+MALE = true;
+FEMALE = false;
+
+module front(index, mark, connection) {
     edge_size = SIZE / 2 * sqrt(2);
 
     module _charger() {
@@ -332,15 +336,13 @@ module front(index, connection) {
     module plot(add, substract = true) {
         width = 4;
         length = 10;
-        height = 8;
+        //height = 8;
+        height = 5;
 
         clear = 0.4;
         clear_height = 8;
 
         module _plot(clear = 1, clear_height = 1) {
-            //cube(size = [length + clear, width + clear, height + clear_height], center = true);
-            //cube(size = [length - 5 + clear, width + 2 + clear, height + clear_height], center = true);
-
             scale([clear, clear, clear_height]) {
                 translate([0, -4, 0.5]) {
                     linear_extrude(height = height, center = true) {
@@ -357,7 +359,7 @@ module front(index, connection) {
             [-20, SIZE / 2 - RIDGE_WIDTH / 2, 4.5],
         ]) {
             translate(data) {
-                if (add && !substract) {
+                if (add == MALE && !substract) {
                     _plot();
                 } else if (substract) {
                     rotate([90, 0, 0]) {
@@ -373,9 +375,9 @@ module front(index, connection) {
         data = [0, 90, 180, 270];
         for (i = [0 : 3]) {
             rotate([0, 0, 45 + data[i]]) {
-                if (substract && !connection[i]) {
+                if (substract && connection[i] == FEMALE) {
                     plot(connection[i], substract);
-                } else if (!substract && connection[i]) {
+                } else if (!substract && connection[i] == MALE) {
                     plot(connection[i], substract);
                 }
             }
@@ -475,7 +477,7 @@ module front(index, connection) {
         }
     }
 
-    if (connection[0] || connection[1] || connection[2] || connection[3]) {
+    if (connection[0] == MALE || connection[1] == MALE || connection[2] == MALE || connection[3] == MALE) {
         blocker(connection, false);
     }
 
@@ -498,7 +500,9 @@ module front(index, connection) {
             }
         }
 
-        blocker(connection, true);
+        if (connection) {
+            blocker(connection, true);
+        }
 
         if (index == 0) {
             coil();
@@ -528,7 +532,7 @@ module front(index, connection) {
             holes_test();
         }
 
-        if (index) {
+        if (index && connection && mark) {
             mark(index);
         }
 
@@ -623,27 +627,40 @@ module faces(which = -1, offset = 30) {
     }
 }
 
-module main(side = -1, offset = 10) {
+module main(side = -1, offset = 10, connections_map = -1, mark = true) {
+    
+    connections_map_default = [
+        [MALE, MALE, MALE, MALE],
+        [MALE, MALE, MALE, MALE],
+        [FEMALE, MALE, FEMALE, MALE],
+        [FEMALE, MALE, FEMALE, MALE],
+        [FEMALE, FEMALE, FEMALE, FEMALE],
+        [FEMALE, FEMALE, FEMALE, FEMALE]
+    ];
 
     for (data = [
-        [0, [0, 0, -SIZE / 2 - offset], [0, 0, 45], [true, true, true, true]], // Bottom
-        [1, [0, 0, SIZE / 2 + offset], [180, 0, 45], [true, true, true, true]],    // Top
-        [2, [0, SIZE / 2 + offset, 0], [90, 45, 0], [false, true, false, true]],
-        [3, [0, -SIZE / 2 - offset, 0], [-90, 135, 0], [false, true, false, true]],
-        [4, [-SIZE / 2 - offset, 0, 0], [90, 45, 90], [false, false, false, false]],
-        [5, [SIZE / 2 + offset, 0, 0], [90, 45, -90], [false, false, false, false]],
+        [0, [0, 0, -SIZE / 2 - offset], [0, 0, 45]],    // Bottom
+        [1, [0, 0, SIZE / 2 + offset],  [180, 0, 45]],  // Top
+        [2, [0, SIZE / 2 + offset, 0],  [90, 45, 0]],
+        [3, [0, -SIZE / 2 - offset, 0], [-90, 135, 0]],
+        [4, [-SIZE / 2 - offset, 0, 0], [90, 45, 90]],
+        [5, [SIZE / 2 + offset, 0, 0],  [90, 45, -90]],
     ]) {
         if (side < 0 || side == data[0]) {
             translate(data[1]) {
                 rotate(data[2]) {
-                    front(data[0], data[3]);
+                    if (connections_map) {
+                        front(index = data[0], mark = mark, connection = connections_map[data[0]]);
+                    } else {
+                        front(index = data[0], mark = mark, connection = connections_map_default[data[0]]);
+                    }
                 }
             }
         }
     }
 }
 
-module getside(side) {
+module getside(side, connections = []) {
     data = [
         [0, 0, 0],
         [180, 0, 0],
@@ -654,13 +671,13 @@ module getside(side) {
     ];
 
     rotate(data[side]) {
-        main(side, offset = 0);
+        main(side, offset = 0, connections);
     }
 }
 
-module getsides(sides, offset = 10) {
+module getsides(sides, offset = 10, mark = true, connections_map = -1) {
     for (side = sides) {
-        main(side, offset);
+        main(side = side, offset = offset, mark = mark, connections_map = connections_map);
     }
 }
 
@@ -736,6 +753,109 @@ module base() {
     //enveloppe();
 }
 
+module v2(sides = -1) {
+
+    thickness = 1.5;
+
+    module cutter(width) {
+        difference() {
+            child(0);
+            difference() {
+                cube(size = [width * 1.5, width * 1.5, 5], center = true);
+                cube(size = [width, width, 6], center = true);
+            }
+        }
+    }
+
+    module face(side, width, length) {
+        cube(size = [width, length, thickness], center = true);
+/*
+        if (side == 3) {
+
+            for (i = [0 : 5 : 100]) {
+                translate([0, i - width / 2, 1]) {
+                    cube([width, 3, 2], center = true);
+                }
+            }
+
+        }
+*/
+
+        /*
+        data = [
+            [ [10, 10 ],    10, 0.6 ],
+            [ [10, 10 ],    3,  1 ],
+            [ [-25, -25 ],    15, 0.5 ],
+            [ [10, -10 ],   2,  1 ],
+        ];
+
+//        for (item = data) {
+        for (i = [0 : 100]) {
+            //translate([ rands(-SIZE / 2, SIZE / 2, 1), rands(-SIZE / 2, SIZE / 2, 1), 1 ]) {
+            translate([ i, i, 1 ]) {
+                //cylinder(r = rands(1, 15, 1), rands(0.3, 1.3, 1), center = true);
+                cylinder(r = rands(1, 15, 1), rands(0.3, 1.3, 1), center = true);
+            }
+        }
+        */
+    }
+
+    //cutter(SIZE) {
+    //    face();
+    //}
+
+    getsides([1, 2, 3, 4, 5], offset = 0, mark = false, connections_map = [
+        [NOTHING, NOTHING, NOTHING, NOTHING],
+        [NOTHING, NOTHING, NOTHING, NOTHING],
+        [NOTHING, NOTHING, FEMALE, NOTHING],
+        [NOTHING, NOTHING, FEMALE, NOTHING],
+        [NOTHING, NOTHING, FEMALE, NOTHING],
+        [NOTHING, NOTHING, FEMALE, NOTHING]
+    ]);
+
+    highest_face = SIZE + thickness * 2;
+    sides_size = [
+        [ highest_face, highest_face ],
+        [ highest_face, highest_face ],
+        [ highest_face, highest_face ],
+        [ highest_face, highest_face ],
+        [ SIZE, highest_face ],
+        [ SIZE, highest_face ]
+    ];
+
+    offset = SIZE / 2 + thickness / 2;
+    difference() {
+        for (data = [
+            //[ 0, [0, 0, -offset],   [180, 0, 0], "RED" ],
+            [ 1, [0, 0, offset],    [0, 0, 0]   ],
+            [ 2, [offset, 0, 0],    [0, 90, 0], "BLUE" ],
+            [ 3, [-offset, 0, 0],   [0, -90, 0] ],
+            [ 4, [0, -offset, 0],   [90, 0, 0]  ],
+            [ 5, [0, offset, 0],    [-90, 0, 0] ]
+        ]) {
+            if (sides == -1 || sides == data[0]) {
+                translate(data[1]) {
+                    rotate(data[2]) {
+                        //cube([sides_size[data[0]][0], sides_size[data[0]][1], thickness], center = true);
+                        face(side = data[0], width = sides_size[data[0]][0], length = sides_size[data[0]][1]);
+                    }
+                }
+            }
+        }
+    }
+
+    //getsides([2], offset = 0, connections = false);
+
+}
+
+module cyls() {
+    size = SIZE / 1.2;
+    difference() {
+        cylinder(r = size, h = SIZE * 1.5, center = true);
+        cylinder(r = size - 10, h = SIZE * 1.5, center = true);
+    }
+}
+
 if (0) {
 
     //main(-1, 0);
@@ -747,12 +867,24 @@ if (0) {
 
 } else {
 
+    difference() {
+        v2();
+
+        for (rot = [ [ 0, 0, 0 ], [ 90, 0, 0 ], [ 0, 90, 0 ] ]) {
+            rotate(rot) {
+                cyls();
+            }
+        }
+    }
+
+/*
     if (0) {
         getside(4);
     } else {
-        getsides([2, 3], 0);
+        getsides([2, 3], 0, connections = false);
         //support();
     }
+*/
 
 /*
     intersection() {
