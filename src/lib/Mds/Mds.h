@@ -79,7 +79,7 @@
 #define REC_PLAY 8
 #define LED 2
 
-#define DEBUG
+//#define DEBUG
 
 // Analog input
 #define AD0     6   // Battery

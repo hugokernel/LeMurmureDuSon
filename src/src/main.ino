@@ -1,6 +1,7 @@
 
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 #include "Wire.h"
 //#include <ADXL345.h>
 //#include <HL1606strip.h>
@@ -54,9 +55,18 @@ extern uint8_t Messages[8];
 
 extern uint8_t Leds[6];
 
+void cmd_help();
 void cmd_led();
 void cmd_play();
 void cmd_record();
+void cmd_stop();
+void cmd_config();
+void cmd_info();
+void cmd_demo();
+void cmd_color();
+void cmd_fstatus();
+void cmd_mute();
+
 void unrecognized(const char *);
 
 SerialCommand sCmd;
@@ -120,7 +130,7 @@ void ledsOff() {
 
 void cplay(uint8_t index) {
     //Serial.print(mds.position.largest);
-    P("Play message #");
+    P("Play msg #");
     PLN(index);
 
     //mds.ledsColor(WHITE);
@@ -146,6 +156,37 @@ void cstop() {
     setLeds(WHITE);
 }
 
+void powerOff(void) {
+    fadeOut();
+    PLN("Power down !");
+    delay(2000);
+    PLN("Suicide !");
+    delay(200);
+    POWER_OFF;
+    delay(2000);
+}
+
+void watchdogOn() {
+    // Clear the reset flag, the WDRF bit (bit 3) of MCUSR.
+    MCUSR = MCUSR & B11110111;
+      
+    // Set the WDCE bit (bit 4) and the WDE bit (bit 3) 
+    // of WDTCSR. The WDCE bit must be set in order to 
+    // change WDE or the watchdog prescalers. Setting the 
+    // WDCE bit will allow updtaes to the prescalers and 
+    // WDE for 4 clock cycles then it will be reset by 
+    // hardware.
+    WDTCSR = WDTCSR | B00011000; 
+
+    // Set the watchdog timeout prescaler value to 1024 K 
+    // which will yeild a time-out interval of about 8.0 s.
+    WDTCSR = B00100001;
+
+    // Enable the watchdog timer interupt.
+    WDTCSR = WDTCSR | B01000000;
+    MCUSR = MCUSR & B11110111;
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -163,8 +204,9 @@ void setup()
     sCmd.addCommand("color",    cmd_color);
     sCmd.addCommand("fstatus",  cmd_fstatus);
     sCmd.addCommand("mute",     cmd_mute);
-    //sCmd.addCommand("vibrate",  cmd_vibrate);
+    sCmd.addCommand("bug",      cmd_bug);
 
+    //sCmd.addCommand("vibrate",  cmd_vibrate);
 
     //Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, STRIP_C, NEO_GRB + NEO_KHZ800);
     strip.begin();
@@ -261,6 +303,11 @@ void setup()
 
     mds.play(MSG_HELLO);
     delay(2000);
+
+    //wdt_enable(WDTO_2S);
+    watchdogOn();
+
+    PLN("Run!");
 }
 
 ISR(TIMER1_OVF_vect)
@@ -350,6 +397,12 @@ Serial.print("]");
         fadeOut();
     }
 
+    if (!mds.isOnCharger() && !ledStatus && ledDelayOn++ > 4000) {
+        PLN("Off");
+        powerOff();
+        while(1);
+    }
+
     // Test battery
     switch (mds.getBatteryState()) {
         case BATTERY_STATE_FULL:
@@ -361,11 +414,7 @@ Serial.print("]");
             delay(500);
             break;
         case BATTERY_STATE_STOP:
-            fadeOut();
-            PLN("Power down in 2 seconds !");
-            delay(2000);
-            PLN("Suicide !");
-            POWER_OFF;
+            powerOff();
             return;
             /*
             while(1) {
@@ -452,7 +501,7 @@ Serial.print("]");
                 mds.vibrate(150);
                 delay(500);
 
-                Serial.print("Record message #");
+                Serial.print("Record msg #");
                 Serial.print(mds.event.current_side);
 
                 mds.record(mds.event.current_side);
@@ -487,7 +536,7 @@ Serial.print("shaked");
                 P("Shake detected !");
                 mds.vibrate(50);
 
-                Serial.print("Record message #");
+                Serial.print("Record msg #");
                 Serial.print(mds.event.current_side);
 
                 // Side led on and vibrate !
@@ -530,6 +579,7 @@ Serial.print("shaked");
 
 
 lesgotocaimal:
+    wdt_reset();
     tick = false;
     TIMSK1 |= (1 << TOIE1);
 }
@@ -752,9 +802,7 @@ void cmd_config() {
     char *arg;
     arg = sCmd.next();
     if (!strcmp(arg, "read")) {
-        PLN("+----------------+");
-        PLN("| Murmure Du Son |");
-        PLN("+----------------+");
+        PLN("Murmure Du Son");
         P("version     : ");
         PLN(mds.config.version);
         P("msgDuration : ");
@@ -901,7 +949,9 @@ void cmd_info() {
 }
 
 void unrecognized(const char *command) {
-    PLN("Command not found !");
+    P("'");
+    P(command);
+    PLN("' command not found !");
 }
 
 void magnetometerDump()
@@ -1043,5 +1093,10 @@ void cmd_help() {
     PLN("- demo");
     PLN("- fstatus");
     PLN("- mute");
+}
+
+void cmd_bug() {
+    PLN("Bug!");
+    while (1);
 }
 
