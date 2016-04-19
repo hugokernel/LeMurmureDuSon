@@ -68,10 +68,10 @@
 #define M7 6
 #define M8 5
 
-#define PWR_CMD 9
+#define PWR_CMD 9   // PB1
 
-#define POWER_ON    DOWN(PWR_CMD);
-#define POWER_OFF   UP(PWR_CMD);
+#define POWER_ON    UP(PWR_CMD);
+#define POWER_OFF   DOWN(PWR_CMD);
 #endif
 
 #define CHG 3
@@ -167,7 +167,7 @@ typedef struct position_t {
 
 #define CONFIG_START    0
 #define MDS_VERSION     "0.1"
-#define MSG_DURATION    1000
+#define MSG_DURATION    5000
 #define DEBUG_MODE      false
 
 typedef struct config_t {
@@ -311,6 +311,9 @@ public:
     void ledsBrightness(uint8_t);
 
     void rainbowParty(uint8_t);
+
+    void powerOn(void);
+    void powerOff(void);
 
     // Sensor
     //void readAccel(double &);

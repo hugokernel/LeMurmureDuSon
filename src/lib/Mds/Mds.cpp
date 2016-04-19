@@ -66,7 +66,17 @@ void interruptLed() {
     Mds::_isBusy = false;
 }
 
+void Mds::powerOn(void) {
+    POWER_ON
+}
+
+void Mds::powerOff(void) {
+    POWER_OFF
+}
+
 void Mds::init(void) {
+
+    POWER_ON
 
     loadConfig();
 
@@ -78,6 +88,7 @@ void Mds::init(void) {
     }
 
     pinMode(CHG, INPUT);
+    //digitalWrite(CHG, HIGH); //pullup
 
     // Set output
     for (uint8_t i = 0; i < sizeof(Messages); i++) {

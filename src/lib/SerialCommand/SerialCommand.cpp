@@ -27,7 +27,7 @@
  * Constructor makes sure some things are set.
  */
 SerialCommand::SerialCommand()
-  : //commandList(NULL),
+  : commandList(NULL),
     commandCount(0),
     defaultHandler(NULL),
     term('\r'),           // default terminator for commands, newline character
@@ -50,7 +50,7 @@ void SerialCommand::addCommand(const char *command, void (*function)()) {
     Serial.println(command);
   #endif
 
-  //commandList = (SerialCommandCallback *) realloc(commandList, (commandCount + 1) * sizeof(SerialCommandCallback));
+  commandList = (SerialCommandCallback *) realloc(commandList, (commandCount + 1) * sizeof(SerialCommandCallback));
   strncpy(commandList[commandCount].command, command, SERIALCOMMAND_MAXCOMMANDLENGTH);
   commandList[commandCount].function = function;
   commandCount++;

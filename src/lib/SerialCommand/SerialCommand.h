@@ -39,7 +39,7 @@
 #define SERIALCOMMAND_MAXCOMMANDLENGTH 8
 
 // Murmure du son
-#define SERIALCOMMAND_COMMAND_COUNT 12
+//#define SERIALCOMMAND_COMMAND_COUNT 12
 
 // Uncomment the next line to run the library in debug mode (verbose messages)
 //#define SERIALCOMMAND_DEBUG
@@ -61,8 +61,8 @@ class SerialCommand {
       char command[SERIALCOMMAND_MAXCOMMANDLENGTH + 1];
       void (*function)();
     };                                    // Data structure to hold Command/Handler function key-value pairs
-    //SerialCommandCallback *commandList;   // Actual definition for command/handler array
-    SerialCommandCallback commandList[SERIALCOMMAND_COMMAND_COUNT];   // Actual definition for command/handler array
+    SerialCommandCallback *commandList;   // Actual definition for command/handler array
+    //SerialCommandCallback commandList[SERIALCOMMAND_COMMAND_COUNT];   // Actual definition for command/handler array
     byte commandCount;
 
     // Pointer to the default handler function

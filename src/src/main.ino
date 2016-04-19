@@ -13,6 +13,12 @@
 
 //#define MUTE
 
+typedef struct {
+    char* command;
+    void (*function)();
+    char* description;
+} command;
+
 #ifdef HL1606
 HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, LED_COUNT);
 
@@ -26,6 +32,8 @@ HL1606strip strip = HL1606strip(STRIP_D, STRIP_L, STRIP_C, LED_COUNT);
 #define VIOLET  0b110
 
 //HL1606stripPWM strippwm = HL1606stripPWM(LED_COUNT, STRIP_L);
+
+// Last led mapping : 125304
 
 uint8_t Colors[] = {
     RED, YELLOW, GREEN, TEAL, BLUE, VIOLET, WHITE, BLACK
@@ -66,6 +74,8 @@ void cmd_demo();
 void cmd_color();
 void cmd_fstatus();
 void cmd_mute();
+void cmd_poweron();
+void cmd_poweroff();
 
 void unrecognized(const char *);
 
@@ -130,7 +140,7 @@ void ledsOff() {
 
 void cplay(uint8_t index) {
     //Serial.print(mds.position.largest);
-    P("Play msg #");
+    PPSTR("Play msg #");
     PLN(index);
 
     //mds.ledsColor(WHITE);
@@ -157,13 +167,35 @@ void cstop() {
 }
 
 void powerOff(void) {
+    // Todo: Stop Watchdog
     fadeOut();
-    PLN("Power down !");
+    PPSTRLN("Power down !");
+    wdt_reset();
     delay(2000);
-    PLN("Suicide !");
+    PPSTRLN("Suicide !");
+    wdt_reset();
     delay(200);
-    POWER_OFF;
+    mds.powerOff();
+    wdt_reset();
     delay(2000);
+}
+
+void breathing(uint8_t cycle, uint8_t _delay) {
+    uint8_t c = 1;
+    uint8_t upper = true;
+    for (; cycle > 0; cycle--) {
+        for (uint8_t i = 0; i < 255; i++) {
+            mds.ledsBrightness(c);
+            delay(_delay);
+
+            wdt_reset();
+
+            if ((!upper && c == 1) || c == 255) {
+                upper = !upper;
+            }
+            c = (upper) ? c + 1 : c - 1;
+        }
+    }
 }
 
 void watchdogOn() {
@@ -187,56 +219,48 @@ void watchdogOn() {
     MCUSR = MCUSR & B11110111;
 }
 
+command commands[] = {
+    { "help",       cmd_help,       "Help !" },
+    { "?",          cmd_help,       "Help !" },
+
+    { "led",        cmd_led,        "Power on led" },
+    { "play",       cmd_play,       "Play sound" },
+    { "record",     cmd_record,     "Record sound" },
+    { "stop",       cmd_stop,       "Stop" },
+    { "config",     cmd_config,     "Read config" },
+    { "info",       cmd_info,       "Get info" },
+    { "demo",       cmd_demo,       "Run demo" },
+    { "color",      cmd_config,     "Color" },
+    { "fstatus",    cmd_fstatus,    "Set face" },
+    { "mute",       cmd_mute,       "Toggle mute" },
+    { "bug",        cmd_bug,        "Test" },
+    { "on",         cmd_poweron,    "Power on" },
+    { "off",        cmd_poweroff,   "Power off" }
+};
+
+void cmd_help() {
+    PPSTRLN("Commands list :");
+    for (uint8_t i = 0; i < sizeof(commands) / sizeof(command); i++) {
+        PPSTR("- ");
+        P(commands[i].command);
+        PPSTR(" ");
+        PLN(commands[i].description);
+    }
+}
+#include <avr/power.h>
+#include <avr/sleep.h>
 void setup()
 {
     Serial.begin(9600);
 
-    //delay(1500);
     sCmd.setDefaultHandler(unrecognized);
-    sCmd.addCommand("help",     cmd_help);
-    sCmd.addCommand("led",      cmd_led);
-    sCmd.addCommand("play",     cmd_play);
-    sCmd.addCommand("record",   cmd_record);
-    sCmd.addCommand("stop",     cmd_stop);
-    sCmd.addCommand("config",   cmd_config);
-    sCmd.addCommand("info",     cmd_info);
-    sCmd.addCommand("demo",     cmd_demo);
-    sCmd.addCommand("color",    cmd_color);
-    sCmd.addCommand("fstatus",  cmd_fstatus);
-    sCmd.addCommand("mute",     cmd_mute);
-    sCmd.addCommand("bug",      cmd_bug);
-
-    //sCmd.addCommand("vibrate",  cmd_vibrate);
+    for (uint8_t i = 0; i < sizeof(commands) / sizeof(command); i++) {
+        sCmd.addCommand(commands[i].command, commands[i].function);
+    }
 
     //Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, STRIP_C, NEO_GRB + NEO_KHZ800);
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
-
-/*
-    strip.setPixelColor(0, WHITE);
-    strip.setPixelColor(1, RED);
-    strip.setPixelColor(2, BLUE);
-    strip.show();
-//    delay(2000);
-
-    //while(1);
-*/
-/*
-    delay(2000);
-    PLN("START");
-
-    while (1) {
-        Serial.print("[");
-        for(uint16_t i=0; i<strip.numPixels(); i++) {
-        //for(uint16_t i=0; i< 60; i++) {
-            strip.setPixelColor(i, RED);
-            strip.show();
-            Serial.print(i);
-            Serial.print(' ');
-        }
-        Serial.print("]");
-    }
-*/
 
     mds.init();
 
@@ -244,33 +268,6 @@ void setup()
     mds.mute(true);
 #endif
 
-    /*
-    while (1) {
-        mds.vibrate(1000);
-        delay(3500);
-    }
-    */
-
-
-/*
-    delay(2000);
-    Serial.print("Record...");
-    mds.record(M8);
-    delay(6000);
-    mds.stop();
-    Serial.print("Stop");
-    delay(3000);
-*/
-
-/*
-    Serial.println("Hello !");
-    mds.play(M8);
-    mds.rainbowParty(500);
-    mds.stop();
-*/
-
-    //mds.ledsOff();
-    //mds.ledsColor(WHITE);
     ledsOff();
 
     // Battery save !
@@ -307,7 +304,7 @@ void setup()
     //wdt_enable(WDTO_2S);
     watchdogOn();
 
-    PLN("Run!");
+    PPSTRLN("Starting sketch !");
 }
 
 ISR(TIMER1_OVF_vect)
@@ -327,29 +324,8 @@ double result = 0;
 bool lastChargingStatus = false;
 uint8_t statusWhenStandOnCharger = BATTERY_STATE_UNKNOW;
 
-
 int x, y, z;
 void loop() {
-
-/*
-    mds.accel.setRangeSetting(2);
-    mds.accel.readAccel(&x, &y, &z);
-    Serial.print("XYZ COUNTS: ");
-    Serial.print(x, DEC);
-    Serial.print(" ");
-    Serial.print(y, DEC);
-    Serial.print(" ");
-    Serial.print(z, DEC);
-    Serial.println(".");
-*/
-
-
-    //static bool chargingHandled = false;
-
-    //mds.accel.printAllRegister();
-    //while(1);
-
-    //mds.ledsColor(WHITE);
 
     while (!tick) {
         sCmd.readSerial();
@@ -359,46 +335,13 @@ void loop() {
     // Stop timer 1 overflow
     TIMSK1 ^= (1 << TOIE1);
 
-/*
-    data[data_index] = mds.position.largest;
-
-/*
-Serial.print("[");
-Serial.print(mds.position.largest);
-Serial.print(", ");
-Serial.print(data[data_index]);
-Serial.print("]");
-*-/
-
-    data_index++;
-    if (data_index >= sizeof(data)) {
-        data_index = 0;
-    }
-
-    result = 0;
-    for (int i = 0; i < 10; i++) {
-        result += data[i];
-//        Serial.print(data[i]);
-//        Serial.print(", ");
-    }
-
-    //result /= 10;
-
-    Serial.print(result);
-    Serial.println();
-*/
-    // Red if charge in progress
-    //if (READ(CHG)) {
-    //    mds.ledsColor(RED);
-    //}
-
     // Led on ?
     if (ledStatus && ledDelayOn++ > 400) {
         fadeOut();
     }
-
+    
     if (!mds.isOnCharger() && !ledStatus && ledDelayOn++ > 4000) {
-        PLN("Off");
+        PPSTRLN("Off");
         powerOff();
         while(1);
     }
@@ -410,23 +353,12 @@ Serial.print("]");
             break;
         case BATTERY_STATE_CRITICAL:
             ledsOff();
-            PLN("Charge me !");
+            PPSTRLN("Battery voltage critical : Charge me !");
             delay(500);
             break;
         case BATTERY_STATE_STOP:
             powerOff();
             return;
-            /*
-            while(1) {
-                P("Power down");
-                delay(1000);
-            }
-            set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-            cli();
-            sleep_enable();
-            //sleep_bod_disable();
-            return;
-            */
     }
 
     if (mds.isOnCharger()) {
@@ -434,12 +366,14 @@ Serial.print("]");
         // Cube just be on the charger
         if (!lastChargingStatus) {
             statusWhenStandOnCharger = mds.getBatteryState();
-            P("Cube just be on charger, status : ");
+            PPSTR("Cube just be on charger, status : ");
             PLN(statusWhenStandOnCharger);
             if (mds.isCharging() && statusWhenStandOnCharger <= BATTERY_STATE_LOW) {
                 fadeIn(RED);
             } else {
                 fadeIn(WHITE);
+                //breathing(10, 3);
+                //fadeIn(WHITE);
             }
         }
 
@@ -629,19 +563,19 @@ void cmd_led() {
         arg = sCmd.next();
         index = atoi(arg);
         if (index < 0 || index >= sizeof(Leds)) {
-            PLN("Index range : 0...7");
+            PPSTRLN("Index range : 0...7");
         } else {
-            P("Set led ");
+            PPSTR("Set led ");
             P(index);
 
             arg = sCmd.next();
             color = atoi(arg);
             if (index < 0 || index >= sizeof(Colors)) {
-                PLN("Color range : 0...5");
+                PPSTRLN("Color range : 0...5");
             return;
             }
 
-            P(" to color ");
+            PPSTR(" to color ");
             P(color);
 
             setLed(Leds[index], Colors[color]);
@@ -652,35 +586,34 @@ void cmd_led() {
         arg = sCmd.next();
         color = atoi(arg);
         if (index < 0 || index >= sizeof(Colors)) {
-            PLN("Color range : 0...5");
+            PPSTRLN("Color range : 0...5");
             return;
         }
 
-        P("Set all led to color ");
+        PPSTR("Set all led to color ");
         P(color);
 
         //mds.ledsColor(Colors[color]);
         setLeds(Colors[color]);
-
         PLN("");
     } else if (!strcmp(arg, "off")) {
         
         fadeOut();
-        PLN("Leds off !");
+        PPSTRLN("Leds off !");
 
     } else if (!strcmp(arg, "fade")) {
        
-        P("Fade leds ");
+        PPSTR("Fade leds ");
         P(index);
 
         arg = sCmd.next();
         color = atoi(arg);
         if (index < 0 || index >= sizeof(Colors)) {
-            PLN("Color range : 0...5");
+            PPSTRLN("Color range : 0...5");
             return;
         }
 
-        P(" to color ");
+        PPSTR(" to color ");
         PLN(color);
 
         fadeOut();
@@ -690,7 +623,7 @@ void cmd_led() {
         arg = sCmd.next();
         color = atoi(arg);
 
-        P("Set leds brightness to ");
+        PPSTR("Set leds brightness to ");
         PLN(color);
 
         mds.ledsBrightness(color);
@@ -701,7 +634,7 @@ void cmd_led() {
         if (!strcmp(arg, "get")) {
             arg = sCmd.next();
         
-            P("Mapping : ");
+            PPSTR("Mapping : ");
 
             for (int i = 0; i < sizeof(Leds); i++) {
                 P(Leds[i]);
@@ -713,15 +646,18 @@ void cmd_led() {
             arg = sCmd.next();
             //index = atoi(arg);
 
-            for (int i = 0; i < strlen(arg); i++) {
+            for (int i = 0; i < sizeof(mds.config.ledMapping); i++) {
                 mds.config.ledMapping[i] = arg[i] - ((int)'0');
                 Leds[i] = mds.config.ledMapping[i];
             }
 
             mds.saveConfig();
-            P("New mapping set to ");
+            PPSTR("New mapping set to ");
             PLN(arg);
         }
+    } else {
+        PPSTRLN("Unknow command !");
+        PPSTRLN("Commands : set, all, off, fade, bright, map");
     }
 }
 
@@ -732,10 +668,10 @@ void cmd_color() {
     arg = sCmd.next();
     color = atoi(arg);
     if (index < 0 || index >= sizeof(Colors)) {
-        PLN("Color range : 0...5");
+        PPSTRLN("Color range : 0...5");
     }
 
-    P("Set color ");// (RED, YELLOW, GREEN, TEAL, BLUE, VIOLET,  WHITE, BLACK) ");
+    PPSTR("Set color ");// (RED, YELLOW, GREEN, TEAL, BLUE, VIOLET,  WHITE, BLACK) ");
     PLN(color);
 
     //mds.ledsColor(Colors[color]);
@@ -749,22 +685,22 @@ void cmd_play() {
     arg = sCmd.next();
     index = atoi(arg);
     if (index < 0 || index >= sizeof(Messages)) {
-        PLN("Index range : 0...7");
+        PPSTRLN("Index range : 0...7");
     } else {
-        P("Play ");
+        PPSTR("Play ");
         P(index);
 
         mds.play(index);
         //delay(6000);
         //mds.stop();
 
-        PLN("...Stop");
+        PPSTRLN("...Stop");
     }
 }
 
 void cmd_stop() {
     mds.stop();
-    PLN(" Stop");
+    PPSTRLN(" Stop");
 }
 
 void cmd_record() {
@@ -775,25 +711,28 @@ void cmd_record() {
     arg = sCmd.next();
     index = atoi(arg);
     if (index < 0 || index >= sizeof(Messages)) {
-        PLN("Index range : 0...7");
+        PPSTRLN("Index range : 0...7");
     } else {
-        P("Record ");
+        PPSTR("Record ");
         P(index);
-        P(" : ");
+        PPSTR(" : ");
 
         for (i = 3; i > 0; i--) {
-            P(" ");
+            PPSTR(" ");
             P(i);
+            wdt_reset();
             delay(1000);
         }
 
-        P(" : Speak !");
+        PPSTR(" : Speak !");
 
         mds.record(index);
+
+        wdt_reset();
         delay(mds.config.msgDuration);
         mds.stop();
 
-        PLN("...Stop");
+        PPSTRLN("...Stop");
     }
 }
 
@@ -802,22 +741,22 @@ void cmd_config() {
     char *arg;
     arg = sCmd.next();
     if (!strcmp(arg, "read")) {
-        PLN("Murmure Du Son");
-        P("version     : ");
+        PPSTRLN("Murmure Du Son");
+        PPSTR("version     : ");
         PLN(mds.config.version);
-        P("msgDuration : ");
+        PPSTR("msgDuration : ");
         PLN(mds.config.msgDuration);
-        P("ledMapping  : ");
+        PPSTR("ledMapping  : ");
         for (i = 0; i < sizeof(mds.config.ledMapping); i++) {
             P((char)(mds.config.ledMapping[i] + ((int)'0')));
         }
-        PLN("");
+        PPSTRLN("");
     } else if (!strcmp(arg, "default")) {
         strcat(mds.config.version, MDS_VERSION);
         mds.config.msgDuration = MSG_DURATION;
         mds.config.debugMode = DEBUG_MODE;
         mds.saveConfig();
-        PLN("Default config saved !");
+        PPSTRLN("Default config saved !");
     } else if (!strcmp(arg, "set")) {
         arg = sCmd.next();
 
@@ -825,12 +764,12 @@ void cmd_config() {
             arg = sCmd.next();
             mds.config.msgDuration = atoi(arg);
             mds.saveConfig();
-            PLN("msgDuration saved !");
+            PPSTRLN("msgDuration saved !");
         } else {
-            PLN("Unknow var !");
+            PPSTRLN("Unknow var !");
         }
     } else {
-        PLN("Arg not found !\n\r - config [read|default|set]");
+        PPSTRLN("Arg not found !\n\r - config [read|default|set]");
     }
 }
 
@@ -838,6 +777,8 @@ void cmd_info() {
     double data[3];
     int error = 0;
     float headingDegrees, heading;
+    char *arg;
+    arg = sCmd.next();
 
     error = mds.compass.SetScale(1.3);
     if (error != 0) {
@@ -848,7 +789,6 @@ void cmd_info() {
     if (error != 0) {
         //Serial.println(mds.compass.GetErrorText(error));
     }
-
 
     while (true) {
 
@@ -864,48 +804,48 @@ void cmd_info() {
         //}
         */
 
-        PLN("[Power]");
-        P(" Battery : ");
+        PPSTRLN("[Power]");
+        PPSTR(" Battery : ");
         P(mds.getBatteryVoltage());
-        PLN("V");
+        PPSTRLN("V");
 
-        P(" Status  : ");
+        PPSTR(" Status  : ");
         switch (mds.getBatteryState()) {
             case BATTERY_STATE_FULL:
-                PLN("Full");
+                PPSTRLN("Full");
                 break;
             case BATTERY_STATE_LOW:
-                PLN("Low");
+                PPSTRLN("Low");
                 break;
             case BATTERY_STATE_CRITICAL:
-                PLN("Critical");
+                PPSTRLN("Critical");
                 break;
             case BATTERY_STATE_STOP:
-                PLN("Stop");
+                PPSTRLN("Stop");
                 break;
         }
 
-        P(" Charge  : ");
+        PPSTR(" Charge  : ");
         if (mds.isOnCharger()) {
             if (!mds.isCharging()) {
-                PLN("Standby");
+                PPSTRLN("Standby");
             } else {
-                PLN("In progress");
+                PPSTRLN("In progress");
             }
         } else {
-            PLN("None");
+            PPSTRLN("None");
         }
 
-        P(" On charger : ");
+        PPSTR(" On charger : ");
         if (mds.isOnCharger()) {
-            PLN("True");
+            PPSTRLN("True");
         } else {
-            PLN("False");
+            PPSTRLN("False");
         }
 
-        P(" Charger : ");
+        PPSTR(" Charger : ");
         P(mds.getChargerVoltage());
-        PLN("V");
+        PPSTRLN("V");
 
         MagnetometerRaw raw = mds.compass.ReadRawAxis();
         heading = atan2(raw.YAxis, raw.XAxis);
@@ -915,43 +855,48 @@ void cmd_info() {
             heading += 2 * PI;
         }
 
-        PLN("\n[Sensor]");
-        P(" Magnetometer : ");
+        PPSTRLN("\n[Sensor]");
+        PPSTR(" Magnetometer : ");
         P(heading * 180 / M_PI);
-        PLN(" degree");
+        PPSTRLN(" degree");
 
 /*
-        P("Magnetometer x:");
+        PPSTR("Magnetometer x:");
         P(raw.XAxis);
-        P(", y:");
+        PPSTR(", y:");
         P(raw.YAxis);
-        P(", z:");
+        PPSTR(", z:");
         PLN(raw.ZAxis);
 */
 
         accel.get_Gxyz(data);
-        P(" Accel x:");
+        PPSTR(" Accel x:");
         P(data[0]);
-        P(", y:");
+        PPSTR(", y:");
         P(data[1]);
-        P(", z:");
+        PPSTR(", z:");
         PLN(data[2]);
 
-        P(" Temp : ");
+        PPSTR(" Temp : ");
         PLN(mds.getTemperature());
 
-        PLN("--");
+        if (strcmp(arg, "loop")) {
+            break;
+        }
+
+        PPSTRLN("--");
 
         delay(1000);
+        wdt_reset();
     }
 
-    PLN("End");
+    PPSTRLN("End");
 }
 
 void unrecognized(const char *command) {
-    P("'");
+    PPSTR("'");
     P(command);
-    PLN("' command not found !");
+    PPSTRLN("' command not found !");
 }
 
 void magnetometerDump()
@@ -1004,18 +949,21 @@ void cmd_demo() {
     index = atoi(arg);
 
     if (index == 0) {
-        //PLN("RainbowParty demo");
+        PPSTR("RainbowParty demo...");
         while (true) {
             mds.rainbowParty(500);
 
             while (Serial.available() > 0) {
                 if (Serial.read()) {
+                    PPSTRLN("End !");
                     return;
                 }
             }
+
+            wdt_reset();
         }
     } else if (index == 1) {
-        //PLN("Brightness demo");
+        PPSTR("Brightness demo...");
         mds.ledsColor(WHITE);
 
         while (true) {
@@ -1024,15 +972,20 @@ void cmd_demo() {
 
             while (Serial.available() > 0) {
                 if (Serial.read()) {
+                    PPSTRLN("End !");
                     return;
                 }
             }
+
+            wdt_reset();
 
             if ((!upper && c == 1) || c == 255) {
                 upper = !upper;
             }
             c = (upper) ? c + 1 : c - 1;
         }
+    } else {
+        PPSTRLN("Unknow demo ! (type demo 0 or demo 1)");
     }
 
     delay(1000);
@@ -1047,25 +1000,25 @@ void cmd_fstatus() {
     arg = sCmd.next();
     index = atoi(arg);
 
-    PLN("Status (0:empty, 1:full, 2:read)");
+    PPSTRLN("Status (0:empty, 1:full, 2:read)");
 
     if (index < 0 || index > 5) {
-        PLN("Index range : 0...6");
+        PPSTRLN("Index range : 0...6");
         return;
     }
 
     arg = sCmd.next();
     status = atoi(arg);
     if (index < 0 || index > 2) {
-        PLN("Index range : 0...6");
+        PPSTRLN("Index range : 0...6");
         return;
     }
 
     mds.status[index] = (Status)status;
 
-    P("Face ");
+    PPSTR("Face ");
     P(mds.status[index]);
-    P(" set to ");
+    PPSTR(" set to ");
     PLN(status);
 }
 
@@ -1078,25 +1031,23 @@ void cmd_mute() {
     mute = atoi(arg);
     mds.mute((bool)mute);
 
-    P("Mute : ");
+    PPSTR("Mute : ");
     PLN(mute);
 }
 
-void cmd_help() {
-    PLN("Command list :");
-    PLN("- led");
-    PLN("- play");
-    PLN("- record");
-    PLN("- stop");
-    PLN("- config");
-    PLN("- info");
-    PLN("- demo");
-    PLN("- fstatus");
-    PLN("- mute");
+void cmd_bug() {
+    PPSTRLN("Bug!");
+    while (1);
 }
 
-void cmd_bug() {
-    PLN("Bug!");
-    while (1);
+void cmd_poweron() {
+    PPSTRLN("Power on !");
+    mds.powerOn();
+}
+
+void cmd_poweroff() {
+    PPSTRLN("Power off !");
+    //mds.powerOff();
+    powerOff();
 }
 
