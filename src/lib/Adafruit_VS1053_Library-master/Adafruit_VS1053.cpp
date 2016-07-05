@@ -17,6 +17,12 @@
 
 static Adafruit_VS1053_FilePlayer *myself;
 
+// MurmureDuSon patch :
+// We use RXLED pin for card chip select
+#define CS_INIT	    DDRB |= (1<<0)
+#define CS_HIGH     PORTB |= (1<<0)
+#define CS_LOW		PORTB &= ~(1<<0)
+
 #ifndef _BV
   #define _BV(x) (1<<(x))
 #endif
@@ -127,8 +133,9 @@ Adafruit_VS1053_FilePlayer::Adafruit_VS1053_FilePlayer(
   playingMusic = false;
 
   // Set the card to be disabled while we get the VS1053 up
-  pinMode(_cardCS, OUTPUT);
-  digitalWrite(_cardCS, HIGH);  
+  // Use of TXLED as output for SDCARD chip select
+  DDRD |= (1<<5);
+  PORTD |= (1<<5);
 }
 
 Adafruit_VS1053_FilePlayer::Adafruit_VS1053_FilePlayer(
@@ -139,8 +146,9 @@ Adafruit_VS1053_FilePlayer::Adafruit_VS1053_FilePlayer(
   playingMusic = false;
 
   // Set the card to be disabled while we get the VS1053 up
-  pinMode(_cardCS, OUTPUT);
-  digitalWrite(_cardCS, HIGH);  
+  // Use of TXLED as output for SDCARD chip select
+  DDRD |= (1<<5);
+  PORTD |= (1<<5);
 }
 
 
@@ -153,8 +161,12 @@ Adafruit_VS1053_FilePlayer::Adafruit_VS1053_FilePlayer(
   playingMusic = false;
 
   // Set the card to be disabled while we get the VS1053 up
-  pinMode(_cardCS, OUTPUT);
-  digitalWrite(_cardCS, HIGH);  
+  //pinMode(_cardCS, OUTPUT);
+  //digitalWrite(_cardCS, HIGH);  
+
+  // Use of RXLED as output
+  DDRB |= (1<<0);
+  PORTB |= (1<<0);
 }
 
 boolean Adafruit_VS1053_FilePlayer::begin(void) {
@@ -469,7 +481,8 @@ void Adafruit_VS1053::reset() {
     delay(100);
     digitalWrite(_reset, HIGH);
   }
-  digitalWrite(_cs, HIGH);
+  //digitalWrite(_cs, HIGH);
+  CS_HIGH;
   digitalWrite(_dcs, HIGH);
   delay(100);
   softReset();
@@ -486,8 +499,9 @@ uint8_t Adafruit_VS1053::begin(void) {
     digitalWrite(_reset, LOW);
   }
 
-  pinMode(_cs, OUTPUT);
-  digitalWrite(_cs, HIGH);
+  CS_INIT;
+  CS_HIGH;
+
   pinMode(_dcs, OUTPUT);
   digitalWrite(_dcs, HIGH);
   pinMode(_dreq, INPUT);
@@ -628,14 +642,16 @@ uint16_t Adafruit_VS1053::sciRead(uint8_t addr) {
   #ifdef SPI_HAS_TRANSACTION
   if (useHardwareSPI) SPI.beginTransaction(VS1053_CONTROL_SPI_SETTING);
   #endif
-  digitalWrite(_cs, LOW);  
+  //digitalWrite(_cs, LOW);  
+  CS_LOW;
   spiwrite(VS1053_SCI_READ);
   spiwrite(addr);
   delayMicroseconds(10);
   data = spiread();
   data <<= 8;
   data |= spiread();
-  digitalWrite(_cs, HIGH);
+  //digitalWrite(_cs, HIGH);
+  CS_HIGH;
   #ifdef SPI_HAS_TRANSACTION
   if (useHardwareSPI) SPI.endTransaction();
   #endif
@@ -648,12 +664,14 @@ void Adafruit_VS1053::sciWrite(uint8_t addr, uint16_t data) {
   #ifdef SPI_HAS_TRANSACTION
   if (useHardwareSPI) SPI.beginTransaction(VS1053_CONTROL_SPI_SETTING);
   #endif
-  digitalWrite(_cs, LOW);  
+  //digitalWrite(_cs, LOW);  
+  CS_LOW;
   spiwrite(VS1053_SCI_WRITE);
   spiwrite(addr);
   spiwrite(data >> 8);
   spiwrite(data & 0xFF);
-  digitalWrite(_cs, HIGH);
+  //digitalWrite(_cs, HIGH);
+  CS_HIGH;
   #ifdef SPI_HAS_TRANSACTION
   if (useHardwareSPI) SPI.endTransaction();
   #endif
