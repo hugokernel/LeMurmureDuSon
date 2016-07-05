@@ -19,6 +19,14 @@
  */
 #include <Arduino.h>
 #include "Sd2Card.h"
+
+// MurmureDuSon patch :
+// We use TXLED pin for card chip select
+#define CS_INIT     DDRD |= (1<<5)
+#define CS_HIGH     PORTD |= (1<<5)
+#define CS_LOW		PORTD &= ~(1<<5)
+
+
 //------------------------------------------------------------------------------
 #ifndef SOFTWARE_SPI
 // functions for hardware SPI
@@ -141,13 +149,14 @@ uint32_t Sd2Card::cardSize(void) {
     return 0;
   }
 }
+
 //------------------------------------------------------------------------------
 void Sd2Card::chipSelectHigh(void) {
-  digitalWrite(chipSelectPin_, HIGH);
+  CS_HIGH;
 }
 //------------------------------------------------------------------------------
 void Sd2Card::chipSelectLow(void) {
-  digitalWrite(chipSelectPin_, LOW);
+  CS_LOW;
 }
 //------------------------------------------------------------------------------
 /** Erase a range of blocks.
@@ -218,7 +227,8 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   uint32_t arg;
 
   // set pin modes
-  pinMode(chipSelectPin_, OUTPUT);
+  CS_INIT;
+
   chipSelectHigh();
   pinMode(SPI_MISO_PIN, INPUT);
   pinMode(SPI_MOSI_PIN, OUTPUT);
